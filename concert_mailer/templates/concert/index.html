@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+<!-- Show a bootstrap table displaying the database fields for the whole list of concerts. Show date, artist, venue, and empty boxes for mgmt email and mgmt name -->
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>-</h1>
+        <a href="{{ url_for('concert.add') }}" class="btn btn-primary">Add -</a>
+    </div>
+    <div class="table-responsive shadow-lg p-3 mb-5 bg-white rounded">
+        <table class="table table-striped table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Artist</th>
+                    <th scope="col">Venue</th>
+                    <th scope="col">Management Email</th>
+                    <th scope="col">Management Name</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for concert in concerts %}
+                    <tr>
+                        <td id="concert_date_{{ concert.id }}"><span>{{ concert.date }}</span></td>
+                        <td id="concert_artist_{{ concert.id }}"><span>{{ concert.artist }}</span></td>
+                        <td id="concert_venue_{{ concert.id }}"><span>{{ concert.venue }}</span></td>
+                        <td id="mgmt_email_{{ concert.id }}"><span>{{ concert.mgmt_email or ''}}</span></td>
+                        <td id="mgmt_name_{{ concert.id }}"><span>{{ concert.mgmt_name or ''}}</span></td>
+                        <td>
+                            <button class="btn btn-primary" id="update_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function toggleEdit(concertId) {
+        const fields = [
+            `concert_date_${concertId}`,
+            `concert_artist_${concertId}`,
+            `concert_venue_${concertId}`,
+            `mgmt_email_${concertId}`,
+            `mgmt_name_${concertId}`
+        ];
+
+        const updateBtn = document.getElementById(`update_btn_${concertId}`);
+        const isEditable = fields.some(fieldId => document.getElementById(fieldId).querySelector('input'));
+
+        if (isEditable) {
+            // Switch to plain text
+            fields.forEach(fieldId => {
+                const input = document.getElementById(fieldId).querySelector('input');
+                const span = document.createElement('span');
+                span.textContent = input.value;
+                document.getElementById(fieldId).innerHTML = '';
+                document.getElementById(fieldId).appendChild(span);
+            });
+
+            updateBtn.textContent = 'Edit';
+
+            // Save changes
+            const data = fields.reduce((acc, fieldId) => {
+                const span = document.getElementById(fieldId).querySelector('span');
+                const key = fieldId.split('_')[1];
+                acc[key] = span.textContent;
+                return acc;
+            }, {});
+
+            fetch(`/update_management/${concertId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('Failed to update management information.');
+                }
+            });
+        } else {
+            // Switch to input fields
+            fields.forEach(fieldId => {
+                const span = document.getElementById(fieldId).querySelector('span');
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-control';
+                input.value = span.textContent;
+                document.getElementById(fieldId).innerHTML = '';
+                document.getElementById(fieldId).appendChild(input);
+            });
+
+            updateBtn.textContent = 'Save';
+        }
+    }
+</script>
+
+
+{% endblock %}
