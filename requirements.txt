@@ -1,8 +1,1 @@
 Flask
-blinker
-click
-colorama
-itsdangerous
-Jinja2
-MarkupSafe
-Werkzeug

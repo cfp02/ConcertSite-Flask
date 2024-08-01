@@ -77,11 +77,11 @@ def update_management(concert_id):
         return jsonify({'success': False, 'message': 'Concert not found'}), 404
     
     # Handle nullable fields
-    mgmt_email = data.get('email') if data.get('email') is not None else concert['mgmt_email']
-    mgmt_name = data.get('name') if data.get('name') is not None else concert['mgmt_name']
-    print(mgmt_email, mgmt_name)
+    # mgmt_email = data.get('email') if data.get('email') is not None else concert['mgmt_email']
+    # mgmt_name = data.get('name') if data.get('name') is not None else concert['mgmt_name']
+    # print(mgmt_email, mgmt_name)
     logging.debug(f"Incoming data: {data}")
-    logging.debug(f"Updating concert ID {concert_id} with mgmt_email: {mgmt_email}, mgmt_name: {mgmt_name}")
+    # logging.debug(f"Updating concert ID {concert_id} with mgmt_email: {mgmt_email}, mgmt_name: {mgmt_name}")
 
     try:
         db.execute(
@@ -90,8 +90,8 @@ def update_management(concert_id):
                 data.get('date', concert['date']),
                 data.get('artist', concert['artist']),
                 data.get('venue', concert['venue']),
-                mgmt_email,
-                mgmt_name,
+                data.get('mgmt_email', concert['mgmt_email']),
+                data.get('mgmt_name', concert['mgmt_name']),
                 concert_id
             )
         )

@@ -1,5 +1,5 @@
-{% extends 'base.html' %}
-<!-- Show a bootstrap table displaying the database fields for the whole list of concerts. Show date, artist, venue, and empty boxes for mgmt email and mgmt name -->
+{% extends "base.html" %}
+
 {% block content %}
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -20,14 +20,15 @@
             </thead>
             <tbody>
                 {% for concert in concerts %}
-                    <tr>
+                    <tr id="row_{{ concert.id }}">
                         <td id="concert_date_{{ concert.id }}"><span>{{ concert.date }}</span></td>
                         <td id="concert_artist_{{ concert.id }}"><span>{{ concert.artist }}</span></td>
                         <td id="concert_venue_{{ concert.id }}"><span>{{ concert.venue }}</span></td>
                         <td id="mgmt_email_{{ concert.id }}"><span>{{ concert.mgmt_email or ''}}</span></td>
                         <td id="mgmt_name_{{ concert.id }}"><span>{{ concert.mgmt_name or ''}}</span></td>
                         <td>
-                            <button class="btn btn-primary" id="update_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
+                            <button class="btn btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
+                            <button class="btn btn-success d-none" id="save_btn_{{ concert.id }}" onclick="saveRow('{{ concert.id }}')">Save</button>
                         </td>
                     </tr>
                 {% endfor %}
@@ -38,66 +39,113 @@
 
 <script>
     function toggleEdit(concertId) {
-        const fields = [
-            `concert_date_${concertId}`,
-            `concert_artist_${concertId}`,
-            `concert_venue_${concertId}`,
-            `mgmt_email_${concertId}`,
-            `mgmt_name_${concertId}`
-        ];
+        const editButton = document.getElementById(`edit_btn_${concertId}`);
+        const saveButton = document.getElementById(`save_btn_${concertId}`);
+        const row = document.getElementById(`row_${concertId}`);
+        const isEditing = saveButton.classList.contains('d-none');
 
-        const updateBtn = document.getElementById(`update_btn_${concertId}`);
-        const isEditable = fields.some(fieldId => document.getElementById(fieldId).querySelector('input'));
+        if (isEditing) {
+            // Start editing
+            editButton.classList.add('d-none');
+            saveButton.classList.remove('d-none');
+            row.classList.add('table-warning');
 
-        if (isEditable) {
-            // Switch to plain text
-            fields.forEach(fieldId => {
-                const input = document.getElementById(fieldId).querySelector('input');
-                const span = document.createElement('span');
-                span.textContent = input.value;
-                document.getElementById(fieldId).innerHTML = '';
-                document.getElementById(fieldId).appendChild(span);
+            // Make fields editable
+            const fields = [
+                `concert_date_${concertId}`,
+                `concert_artist_${concertId}`,
+                `concert_venue_${concertId}`,
+                `mgmt_email_${concertId}`,
+                `mgmt_name_${concertId}`
+            ];
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                if (element) {
+                    element.contentEditable = true;
+                    element.classList.add('editable');
+                    element.addEventListener('keydown', function(event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            saveRow(concertId);
+                        }
+                    });
+                }
             });
 
-            updateBtn.textContent = 'Edit';
-
-            // Save changes
-            const data = fields.reduce((acc, fieldId) => {
-                const span = document.getElementById(fieldId).querySelector('span');
-                const key = fieldId.split('_')[1];
-                acc[key] = span.textContent;
-                return acc;
-            }, {});
-
-            fetch(`/update_management/${concertId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    alert('Failed to update management information.');
+            // Gray out other rows and hide their edit buttons
+            document.querySelectorAll('tr').forEach(tr => {
+                if (tr.id !== `row_${concertId}`) {
+                    tr.classList.add('table-secondary');
+                    const editBtn = tr.querySelector('.btn-primary');
+                    if (editBtn) {
+                        editBtn.classList.add('d-none');
+                    }
                 }
             });
         } else {
-            // Switch to input fields
-            fields.forEach(fieldId => {
-                const span = document.getElementById(fieldId).querySelector('span');
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'form-control';
-                input.value = span.textContent;
-                document.getElementById(fieldId).innerHTML = '';
-                document.getElementById(fieldId).appendChild(input);
+            // Stop editing
+            editButton.classList.remove('d-none');
+            saveButton.classList.add('d-none');
+            row.classList.remove('table-warning');
+
+            // Make fields non-editable
+            const fields = [
+                `concert_date_${concertId}`,
+                `concert_artist_${concertId}`,
+                `concert_venue_${concertId}`,
+                `mgmt_email_${concertId}`,
+                `mgmt_name_${concertId}`
+            ];
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                if (element) {
+                    element.contentEditable = false;
+                    element.classList.remove('editable');
+                }
             });
 
-            updateBtn.textContent = 'Save';
+            // Restore other rows and show their edit buttons
+            document.querySelectorAll('tr').forEach(tr => {
+                if (tr.id !== `row_${concertId}`) {
+                    tr.classList.remove('table-secondary');
+                    const editBtn = tr.querySelector('.btn-primary');
+                    if (editBtn) {
+                        editBtn.classList.remove('d-none');
+                    }
+                }
+            });
         }
     }
+
+    function saveRow(concertId) {
+        const data = {
+            concert_date: document.getElementById(`concert_date_${concertId}`).innerText,
+            concert_artist: document.getElementById(`concert_artist_${concertId}`).innerText,
+            concert_venue: document.getElementById(`concert_venue_${concertId}`).innerText,
+            mgmt_email: document.getElementById(`mgmt_email_${concertId}`).innerText,
+            mgmt_name: document.getElementById(`mgmt_name_${concertId}`).innerText
+        };
+
+        fetch(`/update_management/${concertId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            toggleEdit(concertId); // Exit edit mode
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
 </script>
-
-
 {% endblock %}
