@@ -23,12 +23,12 @@
             </thead>
             <tbody>
                 {% for concert in future_concerts %}
-                    <tr id="row_{{ concert.id }}">
-                        <td><div id="concert_date_{{ concert.id }}" class="editable-content">{{ concert.date }}</div></td>
-                        <td><div id="concert_artist_{{ concert.id }}" class="editable-content">{{ concert.artist }}</div></td>
-                        <td><div id="concert_venue_{{ concert.id }}" class="editable-content">{{ concert.venue }}</div></td>
-                        <td><div id="mgmt_email_{{ concert.id }}" class="editable-content">{{ concert.mgmt_email or '' }}</div></td>
-                        <td><div id="mgmt_name_{{ concert.id }}" class="editable-content">{{ concert.mgmt_name or '' }}</div></td>
+                    <tr id="row_{{ concert.id }}" class = "table-row-scraper">
+                        <td><div id="concert_date_{{ concert.id }}" class="editable-content cnt">{{ concert.date }}</div></td>
+                        <td><div id="concert_artist_{{ concert.id }}" class="editable-content cnt">{{ concert.artist }}</div></td>
+                        <td><div id="concert_venue_{{ concert.id }}" class="editable-content cnt">{{ concert.venue }}</div></td>
+                        <td><div id="mgmt_email_{{ concert.id }}" class="editable-content cnt">{{ concert.mgmt_email or '' }}</div></td>
+                        <td><div id="mgmt_name_{{ concert.id }}" class="editable-content cnt">{{ concert.mgmt_name or '' }}</div></td>
                         <td>
                             <button class="btn btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
                             <button class="btn btn-success d-none" id="save_btn_{{ concert.id }}" onclick="saveRow('{{ concert.id }}')">Save</button>
@@ -66,12 +66,12 @@
             </thead>
             <tbody>
                 {% for concert in past_concerts %}
-                    <tr id="row_{{ concert.id }}">
-                        <td id="concert_date_{{ concert.id }}"><span>{{ concert.date }}</span></td>
-                        <td id="concert_artist_{{ concert.id }}"><span>{{ concert.artist }}</span></td>
-                        <td id="concert_venue_{{ concert.id }}"><span>{{ concert.venue }}</span></td>
-                        <td id="mgmt_email_{{ concert.id }}"><span>{{ concert.mgmt_email or '' }}</span></td>
-                        <td id="mgmt_name_{{ concert.id }}"><span>{{ concert.mgmt_name or '' }}</span></td>
+                    <tr id="row_{{ concert.id }}" class = "table-row-scraper">
+                        <td><div id="concert_date_{{ concert.id }}" class="editable-content">{{ concert.date }}</div></td>
+                        <td><div id="concert_artist_{{ concert.id }}" class="editable-content">{{ concert.artist }}</div></td>
+                        <td><div id="concert_venue_{{ concert.id }}" class="editable-content">{{ concert.venue }}</div></td>
+                        <td><div id="mgmt_email_{{ concert.id }}" class="editable-content">{{ concert.mgmt_email or '' }}</div></td>
+                        <td><div id="mgmt_name_{{ concert.id }}" class="editable-content">{{ concert.mgmt_name or '' }}</div></td>
                         <td>
                             <button class="btn btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
                             <button class="btn btn-success d-none" id="save_btn_{{ concert.id }}" onclick="saveRow('{{ concert.id }}')">Save</button>
@@ -119,7 +119,7 @@
                 const element = document.getElementById(field);
                 if (element) {
                     element.contentEditable = true;
-                    element.classList.add('editable');
+                    element.classList.add('editable-content');
                     element.addEventListener('keydown', function(event) {
                         if (event.key === 'Enter') {
                             event.preventDefault();
@@ -157,7 +157,7 @@
                 const element = document.getElementById(field);
                 if (element) {
                     element.contentEditable = false;
-                    element.classList.remove('editable');
+                    element.classList.remove('editable-content');
                 }
             });
 
@@ -173,6 +173,7 @@
             });
         }
     }
+
 
     function saveRow(concertId) {
         const data = {
@@ -205,4 +206,32 @@
         });
     }
 </script>
+<style>
+    /* Base styling for all contenteditable elements */
+    .editable-content {
+        border-radius: 4px; /* Rounded corners */
+        background-color: rgba(255, 255, 255, 0); /* Consistent background color */
+        box-sizing: border-box; /* Ensure padding/border does not affect width */
+        height: 40px; /* Maintain row height */
+        vertical-align:middle; /* Center text vertically */
+    }
+
+    /* Styling when a row is being edited */
+    .table-warning .editable-content {
+        background-color: #f9f9f9; /* Slightly different background when editing */
+        border: 1px solid #ddd; /* Border to indicate edit mode */
+    }
+
+    /* Styling for rows that are not active (when editing) */
+    .table-secondary .editable-content {
+        background-color: #f8f9fa00; /* Slightly gray background for non-active rows */
+    }
+
+    .cnt {
+        vertical-align: middle;
+    }
+
+
+</style>
+
 {% endblock %}
