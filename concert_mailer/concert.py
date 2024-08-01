@@ -12,12 +12,13 @@ bp = Blueprint('concert', __name__)
 logging.basicConfig(level=logging.DEBUG)
 
 @bp.route('/')
+@login_required
 def index():
     db = get_db()
     concerts = db.execute(
         'SELECT c.id, artist, venue, date, mgmt_email, mgmt_name, user_id, username'
         ' FROM concert c JOIN user u ON c.user_id = u.id'
-        ' ORDER BY date DESC'
+        ' ORDER BY date ASC'
     ).fetchall()
 
     for concert in concerts:
@@ -64,7 +65,7 @@ def add():
     return render_template("concert/add.html")
 
 @bp.route('/update_management/<int:concert_id>', methods=['POST'])
-# @login_required
+@login_required
 def update_management(concert_id):
     data = request.json
     db = get_db()
