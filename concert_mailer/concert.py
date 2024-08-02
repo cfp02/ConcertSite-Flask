@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify, current_app
 )
 from werkzeug.exceptions import abort
 import logging
@@ -8,7 +8,8 @@ from flask_mail import Mail, Message
 
 from concert_mailer.auth import login_required
 from concert_mailer.db import get_concerts, count_concerts, insert_concert, update_concert, get_concert, delete_concert
-from concert_mailer import app
+from concert_mailer.email_helpers import send_email, date_manipulation, email_subject_2, template_html_1
+# from concert_mailer import mail_obj as mail
 
 bp = Blueprint('concert', __name__)
 
@@ -23,12 +24,6 @@ def index():
     page = request.args.get('page', 1, type=int)
     per_page = 50  # Number of concerts per page
     offset = (page - 1) * per_page
-
-    # Run the alter table command:
-    # ALTER TABLE concert ADD COLUMN emailed BOOLEAN DEFAULT FALSE;
-    # from concert_mailer.db import get_db
-    # db = get_db()
-    # db.execute('ALTER TABLE concert ADD COLUMN emailed BOOLEAN DEFAULT FALSE;')
 
 
     # Fetch future concerts
@@ -124,21 +119,54 @@ def delete(concert_id):
 @login_required
 def send_concert_email(concert_id):
     data = request.json
-    message = data['message']
     
     concert = get_concert(concert_id)
     if concert is None:
         return jsonify({'success': False, 'message': 'Concert not found'}), 404
+    
+    mail_obj: Mail = current_app.extensions['mail']
+
+    # concert['date'] is in the format 'YYYY-MM-DD'
+    date_datetime = datetime.strptime(concert['date'], '%Y-%m-%d')
+
+    date_subject, date = date_manipulation(date_datetime)
+
+    placeholders = {
+        'mgmt_name': concert['mgmt_name'],
+        'artist': concert['artist'],
+        'venue': concert['venue'],
+        'location': '',
+        'date': date,
+        'date_subject': date_subject
+    }
 
     try:
-        msg = Message(subject='Concert Information',
-                      recipients=[concert['mgmt_email']],
-                      body=message)
-        mail.send(msg)
-        logging.debug(f"Email sent to {concert['mgmt_email']} with message: {message}")
-        # Optionally, update the emailed status
+        ret = send_email(
+            mail_obj,
+            [concert['mgmt_email']],
+            template_html_1,
+            placeholders,
+            sender='Cole Parks Photography',
+            subject=email_subject_2
+        )
         update_concert(concert_id, concert['date'], concert['artist'], concert['venue'], concert['mgmt_email'], concert['mgmt_name'], emailed=True)
         return jsonify({'success': True})
     except Exception as e:
-        print(e)
         return jsonify({'success': False, 'message': str(e)}), 500
+
+
+    # try:
+    #     print('\n\n Sending email to', concert["mgmt_email"], ' with body: ', message)
+    #     mail = current_app.extensions['mail']
+    #     msg = Message(subject='Concert Information',
+    #                   sender=current_app.config['MAIL_USERNAME'],
+    #                   recipients=[concert['mgmt_email']],
+    #                   body=message)
+    #     mail.send(msg)
+    #     logging.debug(f"Email sent to {concert['mgmt_email']} with message: {message}")
+    #     # Optionally, update the emailed status
+    #     update_concert(concert_id, concert['date'], concert['artist'], concert['venue'], concert['mgmt_email'], concert['mgmt_name'], emailed=True)
+    #     return jsonify({'success': True})
+    # except Exception as e:
+    #     print(e)
+    #     return jsonify({'success': False, 'message': str(e)}), 500

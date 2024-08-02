@@ -3,12 +3,12 @@
 {% block content %}
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Concerts</h1>
-        <a href="{{ url_for('concert.add') }}" class="btn btn-primary">Add Concert</a>
+        <h1>-</h1>
+        <a href="{{ url_for('concert.add') }}" class="btn btn-primary">Add -</a>
     </div>
     
     <!-- Future Concerts -->
-    <h2>Future Concerts</h2>
+    <h2>Future -</h2>
     <div class="table-responsive shadow-lg p-3 mb-5 bg-white rounded">
         <table class="table table-striped table-hover">
             <thead class="thead-dark">
@@ -55,7 +55,7 @@
     </div>
 
     <!-- Past Concerts -->
-    <h2>Past Concerts</h2>
+    <h2>Past -</h2>
     <div class="table-responsive shadow-lg p-3 mb-5 bg-white rounded">
         <table class="table table-striped table-hover">
             <thead class="thead-dark">
@@ -266,6 +266,7 @@
     }
 
     function sendEmail() {
+
         const concertId = document.getElementById('emailConcertId').value;
         const message = document.getElementById('emailMessage').value;
 

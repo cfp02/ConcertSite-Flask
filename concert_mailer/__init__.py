@@ -12,11 +12,11 @@ def create_app(test_config=None):
     )
 
     app.config.update(
-    MAIL_SERVER='smtp.example.com',
+    MAIL_SERVER='smtp.gmail.com',
     MAIL_PORT=587,
     MAIL_USE_TLS=True,
-    MAIL_USERNAME='coleparksphotography@gmail.com',
-    MAIL_PASSWORD='6JAT4-8X00H-L7MFN-94T68-4NG5P1'
+    MAIL_USERNAME='lunemediamailer@gmail.com',
+    MAIL_PASSWORD='------------------'
     )
     mail = Mail(app)
 
