@@ -1,6 +1,7 @@
 
 import os
 from flask import Flask
+from flask_mail import Mail
 
 def create_app(test_config=None):
     # create and configure the app
@@ -9,6 +10,15 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'concert_mailer.sqlite'),
     )
+
+    app.config.update(
+    MAIL_SERVER='smtp.example.com',
+    MAIL_PORT=587,
+    MAIL_USE_TLS=True,
+    MAIL_USERNAME='coleparksphotography@gmail.com',
+    MAIL_PASSWORD='6JAT4-8X00H-L7MFN-94T68-4NG5P1'
+    )
+    mail = Mail(app)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing

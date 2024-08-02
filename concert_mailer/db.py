@@ -81,3 +81,8 @@ def get_concert(concert_id):
     return db.execute(
         'SELECT * FROM concert WHERE id = ?', (concert_id,)
     ).fetchone()
+
+def delete_concert(concert_id):
+    db = get_db()
+    db.execute('DELETE FROM concert WHERE id = ?', (concert_id,))
+    db.commit()

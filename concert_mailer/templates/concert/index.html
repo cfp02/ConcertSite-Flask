@@ -34,6 +34,8 @@
                         <td>
                             <button class="btn btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
                             <button class="btn btn-success d-none" id="save_btn_{{ concert.id }}" onclick="saveRow('{{ concert.id }}')">Save</button>
+                            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#emailModal" onclick="openEmailModal('{{ concert.id }}')">Email</button>
+
                         </td>
                     </tr>
                 {% endfor %}
@@ -97,6 +99,48 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Email Modal -->
+<div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="emailModalLabel">Send Email</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="emailForm">
+            <div class="mb-3">
+              <label for="emailArtist" class="form-label">Artist</label>
+              <input type="text" class="form-control" id="emailArtist" readonly>
+            </div>
+            <div class="mb-3">
+              <label for="emailVenue" class="form-label">Venue</label>
+              <input type="text" class="form-control" id="emailVenue" readonly>
+            </div>
+            <div class="mb-3">
+              <label for="emailDate" class="form-label">Date</label>
+              <input type="text" class="form-control" id="emailDate" readonly>
+            </div>
+            <div class="mb-3">
+              <label for="emailMgmtEmail" class="form-label">Management Email</label>
+              <input type="email" class="form-control" id="emailMgmtEmail" readonly>
+            </div>
+            <div class="mb-3">
+              <label for="emailMgmtName" class="form-label">Management Name</label>
+              <input type="text" class="form-control" id="emailMgmtName" readonly>
+            </div>
+            <div class="mb-3">
+              <label for="emailMessage" class="form-label">Message</label>
+              <textarea class="form-control" id="emailMessage" rows="4"></textarea>
+            </div>
+            <input type="hidden" id="emailConcertId">
+            <button type="button" class="btn btn-primary" onclick="sendEmail()">Send Email</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
     function toggleEdit(concertId) {
@@ -209,7 +253,51 @@
             console.error('Error:', error);
         });
     }
+
+    function openEmailModal(concertId) {
+        const concertRow = document.getElementById(`row_${concertId}`);
+        
+        document.getElementById('emailArtist').value = concertRow.querySelector(`#concert_artist_${concertId}`).innerText;
+        document.getElementById('emailVenue').value = concertRow.querySelector(`#concert_venue_${concertId}`).innerText;
+        document.getElementById('emailDate').value = concertRow.querySelector(`#concert_date_${concertId}`).innerText;
+        document.getElementById('emailMgmtEmail').value = concertRow.querySelector(`#mgmt_email_${concertId}`).innerText;
+        document.getElementById('emailMgmtName').value = concertRow.querySelector(`#mgmt_name_${concertId}`).innerText;
+        document.getElementById('emailConcertId').value = concertId;
+    }
+
+    function sendEmail() {
+        const concertId = document.getElementById('emailConcertId').value;
+        const message = document.getElementById('emailMessage').value;
+
+        fetch(`/send_email/${concertId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Email sent successfully!');
+                document.getElementById('emailForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('emailModal')).hide();
+            } else {
+                alert('Error sending email: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    
 </script>
+
 <style>
     /* Base styling for all contenteditable elements */
     .editable-content {

@@ -2,3 +2,4 @@ Flask
 selenium
 webdriver-manager
 beautifulsoup4
+flask-mail

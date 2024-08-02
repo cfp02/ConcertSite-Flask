@@ -4,13 +4,16 @@ from flask import (
 from werkzeug.exceptions import abort
 import logging
 from datetime import datetime
+from flask_mail import Mail, Message
 
 from concert_mailer.auth import login_required
-from concert_mailer.db import get_concerts, count_concerts, insert_concert, update_concert, get_concert
+from concert_mailer.db import get_concerts, count_concerts, insert_concert, update_concert, get_concert, delete_concert
+from concert_mailer import app
 
 bp = Blueprint('concert', __name__)
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 @bp.route('/')
 @login_required
@@ -108,4 +111,34 @@ def update_management(concert_id):
         return jsonify({'success': True})
     except Exception as e:
         logging.error(f"Error updating concert ID {concert_id}: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@bp.route('/delete/<int:concert_id>', methods=['POST'])
+@login_required
+def delete(concert_id):
+    delete_concert(concert_id)
+    return redirect(url_for('concert.index'))
+
+
+@bp.route('/send_email/<int:concert_id>', methods=['POST'])
+@login_required
+def send_concert_email(concert_id):
+    data = request.json
+    message = data['message']
+    
+    concert = get_concert(concert_id)
+    if concert is None:
+        return jsonify({'success': False, 'message': 'Concert not found'}), 404
+
+    try:
+        msg = Message(subject='Concert Information',
+                      recipients=[concert['mgmt_email']],
+                      body=message)
+        mail.send(msg)
+        logging.debug(f"Email sent to {concert['mgmt_email']} with message: {message}")
+        # Optionally, update the emailed status
+        update_concert(concert_id, concert['date'], concert['artist'], concert['venue'], concert['mgmt_email'], concert['mgmt_name'], emailed=True)
+        return jsonify({'success': True})
+    except Exception as e:
+        print(e)
         return jsonify({'success': False, 'message': str(e)}), 500
