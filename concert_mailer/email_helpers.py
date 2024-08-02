@@ -2,6 +2,8 @@ from datetime import datetime
 import os
 import logging
 from flask_mail import Mail, Message
+from flask import current_app
+from concert_mailer.db import get_concert
 
 email_subject_1 = "Photography inquiry for {{artist}} at {{venue}} on {{date_subject}}"
 email_subject_2 = "Photography inquiry for {{artist}} at {{venue}} ({{date_subject}})"
@@ -60,7 +62,32 @@ def date_manipulation(date: datetime):
     normal_date = date.strftime("%A, %B %d")
     return short_date, normal_date
 
-def send_email(
+def generate_concert_email(concert_id: int):
+    concert = get_concert(concert_id)
+    
+    mail_obj: Mail = current_app.extensions['mail']
+
+    # concert['date'] is in the format 'YYYY-MM-DD'
+    date_datetime = datetime.strptime(concert['date'], '%Y-%m-%d')
+
+    date_subject, date = date_manipulation(date_datetime)
+
+    placeholders = {
+        'mgmt_name': concert['mgmt_name'],
+        'artist': concert['artist'],
+        'venue': concert['venue'],
+        'location': '',
+        'date': date,
+        'date_subject': date_subject
+    }
+
+   
+    new_mail_obj, msg = generate_email(mail_obj, [concert['mgmt_email']], template_html_1, placeholders, sender='Cole Parks Photography',subject=email_subject_2)
+
+    return new_mail_obj, msg
+    
+
+def generate_email(
     email_obj: Mail,
     recipients: list[str],
     template_body: str,
@@ -68,6 +95,8 @@ def send_email(
     sender = 'Cole Parks Photography',
     subject: str = "Photography inquiry for {{artist}} at {{venue}} on {{date_subject}}",
 ):
+    
+    
     # Replace template html with placeholders
     replaced_body = replace_placeholders(template_body, placeholders)
     replaced_subject = replace_placeholders(subject, placeholders)
@@ -80,6 +109,11 @@ def send_email(
         msg.html = replaced_body
     else:
         msg.body = replaced_body
+
+    return email_obj, msg
+
+
+def send_email(email_obj: Mail, msg: Message) -> bool:
 
     # Send the email
     try:    

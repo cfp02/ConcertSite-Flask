@@ -2,7 +2,7 @@
 import os
 from flask import Flask
 from flask_mail import Mail
-from mailpassword import mail_password
+from concert_mailer.mailpassword import mail_password
 
 def create_app(test_config=None):
     # create and configure the app

@@ -8,7 +8,7 @@ from flask_mail import Mail, Message
 
 from concert_mailer.auth import login_required
 from concert_mailer.db import get_concerts, count_concerts, insert_concert, update_concert, get_concert, delete_concert
-from concert_mailer.email_helpers import send_email, date_manipulation, email_subject_2, template_html_1
+from concert_mailer.email_helpers import generate_email, generate_concert_email, send_email, date_manipulation, email_subject_2, template_html_1
 # from concert_mailer import mail_obj as mail
 
 bp = Blueprint('concert', __name__)
@@ -124,49 +124,40 @@ def send_concert_email(concert_id):
     if concert is None:
         return jsonify({'success': False, 'message': 'Concert not found'}), 404
     
-    mail_obj: Mail = current_app.extensions['mail']
-
-    # concert['date'] is in the format 'YYYY-MM-DD'
-    date_datetime = datetime.strptime(concert['date'], '%Y-%m-%d')
-
-    date_subject, date = date_manipulation(date_datetime)
-
-    placeholders = {
-        'mgmt_name': concert['mgmt_name'],
-        'artist': concert['artist'],
-        'venue': concert['venue'],
-        'location': '',
-        'date': date,
-        'date_subject': date_subject
-    }
+    print("Sending email for concert ID ", concert_id)
+    
+    mail_obj, message = generate_concert_email(concert_id)
 
     try:
-        ret = send_email(
-            mail_obj,
-            [concert['mgmt_email']],
-            template_html_1,
-            placeholders,
-            sender='Cole Parks Photography',
-            subject=email_subject_2
-        )
+        send_email(mail_obj, message)
         update_concert(concert_id, concert['date'], concert['artist'], concert['venue'], concert['mgmt_email'], concert['mgmt_name'], emailed=True)
-        return jsonify({'success': True})
+        email_content = message.html or message.body
+        return jsonify({'success': True, 'email_content': email_content})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    
+    
+@bp.route('/fetch_email_content/<int:concert_id>', methods=['GET'])
+@login_required
+def fetch_email_content(concert_id):
+    concert = get_concert(concert_id)
+    if concert is None:
+        return jsonify({'success': False, 'message': 'Concert not found'}), 404
+    
+    try:
+        # Generate the email content for the given concert
+        mail_obj, message = generate_concert_email(concert_id)
+        email_content = message.html or message.body
+        
+        return jsonify({'success': True, 'email_content': email_content})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-
-    # try:
-    #     print('\n\n Sending email to', concert["mgmt_email"], ' with body: ', message)
-    #     mail = current_app.extensions['mail']
-    #     msg = Message(subject='Concert Information',
-    #                   sender=current_app.config['MAIL_USERNAME'],
-    #                   recipients=[concert['mgmt_email']],
-    #                   body=message)
-    #     mail.send(msg)
-    #     logging.debug(f"Email sent to {concert['mgmt_email']} with message: {message}")
-    #     # Optionally, update the emailed status
-    #     update_concert(concert_id, concert['date'], concert['artist'], concert['venue'], concert['mgmt_email'], concert['mgmt_name'], emailed=True)
-    #     return jsonify({'success': True})
-    # except Exception as e:
-    #     print(e)
-    #     return jsonify({'success': False, 'message': str(e)}), 500
+@bp.route('/delete_concert/<int:concert_id>', methods=['POST'])
+def delete_concert_route(concert_id):
+    try:
+        delete_concert(concert_id)
+        return jsonify({'success': True})
+    except Exception as e:
+        print(e)
+        return jsonify({'success': False, 'message': 'Failed to delete concert'})
