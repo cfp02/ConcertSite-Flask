@@ -2,6 +2,7 @@ import sqlite3
 
 import click
 from flask import current_app, g
+from datetime import datetime
 
 def get_db():
     if 'db' not in g:
@@ -35,3 +36,42 @@ def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
     
+def get_concerts(date_filter, order, limit, offset):
+    db = get_db()
+    return db.execute(
+        f'SELECT c.id, artist, venue, date, mgmt_email, mgmt_name, user_id, username'
+        f' FROM concert c JOIN user u ON c.user_id = u.id'
+        f' WHERE date {date_filter} ?'
+        f' ORDER BY date {order}'
+        f' LIMIT ? OFFSET ?',
+        (datetime.today().date(), limit, offset)
+    ).fetchall()
+
+def count_concerts(date_filter):
+    db = get_db()
+    return db.execute(
+        f'SELECT COUNT(*) FROM concert WHERE date {date_filter} ?',
+        (datetime.today().date(),)
+    ).fetchone()[0]
+
+def insert_concert(artist, venue, date, mgmt_email, mgmt_name, user_id):
+    db = get_db()
+    db.execute(
+        'INSERT INTO concert (artist, venue, date, mgmt_email, mgmt_name, user_id) VALUES (?, ?, ?, ?, ?, ?)',
+        (artist, venue, date, mgmt_email, mgmt_name, user_id)
+    )
+    db.commit()
+
+def update_concert(concert_id, date, artist, venue, mgmt_email, mgmt_name):
+    db = get_db()
+    db.execute(
+        'UPDATE concert SET date = ?, artist = ?, venue = ?, mgmt_email = ?, mgmt_name = ? WHERE id = ?',
+        (date, artist, venue, mgmt_email, mgmt_name, concert_id)
+    )
+    db.commit()
+
+def get_concert(concert_id):
+    db = get_db()
+    return db.execute(
+        'SELECT * FROM concert WHERE id = ?', (concert_id,)
+    ).fetchone()

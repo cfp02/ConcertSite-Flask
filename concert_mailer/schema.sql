@@ -14,6 +14,7 @@ CREATE TABLE concert (
     date TEXT NOT NULL,
     mgmt_email TEXT,
     mgmt_name TEXT,
+    -- emailed BOOLEAN DEFAULT FALSE,
     user_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user(id)
 );
