@@ -119,11 +119,11 @@
 
 <!-- Email Modal -->
 <div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="emailModalLabel">Email Content</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeEmailModal()"></button>
             </div>
             <div class="modal-body">
                 <!-- Container to display the email content -->
@@ -132,7 +132,7 @@
             <div class="modal-footer">
                 <!-- Hidden input to store the concert ID -->
                 <input type="hidden" id="emailConcertId">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="closeEmailModal()">Close</button>
                 <button type="button" class="btn btn-primary" onclick="sendEmail()">Send Email</button>
             </div>
         </div>
