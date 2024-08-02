@@ -2,6 +2,7 @@
 import os
 from flask import Flask
 from flask_mail import Mail
+from mailpassword import mail_password
 
 def create_app(test_config=None):
     # create and configure the app
@@ -16,7 +17,7 @@ def create_app(test_config=None):
     MAIL_PORT=587,
     MAIL_USE_TLS=True,
     MAIL_USERNAME='lunemediamailer@gmail.com',
-    MAIL_PASSWORD='------------------'
+    MAIL_PASSWORD=mail_password
     )
     mail = Mail(app)
 
