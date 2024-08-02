@@ -21,6 +21,13 @@ def index():
     per_page = 50  # Number of concerts per page
     offset = (page - 1) * per_page
 
+    # Run the alter table command:
+    # ALTER TABLE concert ADD COLUMN emailed BOOLEAN DEFAULT FALSE;
+    # from concert_mailer.db import get_db
+    # db = get_db()
+    # db.execute('ALTER TABLE concert ADD COLUMN emailed BOOLEAN DEFAULT FALSE;')
+
+
     # Fetch future concerts
     future_concerts = get_concerts('>=', 'ASC', per_page, offset)
 

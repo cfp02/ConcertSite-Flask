@@ -57,17 +57,23 @@ def count_concerts(date_filter):
 def insert_concert(artist, venue, date, mgmt_email, mgmt_name, user_id):
     db = get_db()
     db.execute(
-        'INSERT INTO concert (artist, venue, date, mgmt_email, mgmt_name, user_id) VALUES (?, ?, ?, ?, ?, ?)',
-        (artist, venue, date, mgmt_email, mgmt_name, user_id)
+        'INSERT INTO concert (artist, venue, date, mgmt_email, mgmt_name, emailed, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        (artist, venue, date, mgmt_email, mgmt_name, False, user_id)
     )
     db.commit()
 
-def update_concert(concert_id, date, artist, venue, mgmt_email, mgmt_name):
+def update_concert(concert_id, date, artist, venue, mgmt_email, mgmt_name, emailed = None):
     db = get_db()
-    db.execute(
-        'UPDATE concert SET date = ?, artist = ?, venue = ?, mgmt_email = ?, mgmt_name = ? WHERE id = ?',
-        (date, artist, venue, mgmt_email, mgmt_name, concert_id)
-    )
+    if emailed is not None:
+        db.execute(
+            'UPDATE concert SET date = ?, artist = ?, venue = ?, mgmt_email = ?, mgmt_name = ?, emailed = ? WHERE id = ?',
+            (date, artist, venue, mgmt_email, mgmt_name, emailed, concert_id)
+        )
+    else:
+        db.execute(
+            'UPDATE concert SET date = ?, artist = ?, venue = ?, mgmt_email = ?, mgmt_name = ? WHERE id = ?',
+            (date, artist, venue, mgmt_email, mgmt_name, concert_id)
+        )
     db.commit()
 
 def get_concert(concert_id):

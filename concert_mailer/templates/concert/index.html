@@ -18,6 +18,7 @@
                     <th scope="col">Venue</th>
                     <th scope="col">Management Email</th>
                     <th scope="col">Management Name</th>
+                    <th scope="col">Emailed</th>
                     <th scope="col">Actions</th>
                 </tr>
             </thead>
@@ -29,6 +30,7 @@
                         <td><div id="concert_venue_{{ concert.id }}" class="editable-content cnt">{{ concert.venue }}</div></td>
                         <td><div id="mgmt_email_{{ concert.id }}" class="editable-content cnt">{{ concert.mgmt_email or '' }}</div></td>
                         <td><div id="mgmt_name_{{ concert.id }}" class="editable-content cnt">{{ concert.mgmt_name or '' }}</div></td>
+                        <td>{{ concert.emailed }}</td>
                         <td>
                             <button class="btn btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
                             <button class="btn btn-success d-none" id="save_btn_{{ concert.id }}" onclick="saveRow('{{ concert.id }}')">Save</button>
@@ -61,6 +63,7 @@
                     <th scope="col">Venue</th>
                     <th scope="col">Management Email</th>
                     <th scope="col">Management Name</th>
+                    <th scope="col">Emailed</th>
                     <th scope="col">Actions</th>
                 </tr>
             </thead>
@@ -72,6 +75,7 @@
                         <td><div id="concert_venue_{{ concert.id }}" class="editable-content">{{ concert.venue }}</div></td>
                         <td><div id="mgmt_email_{{ concert.id }}" class="editable-content">{{ concert.mgmt_email or '' }}</div></td>
                         <td><div id="mgmt_name_{{ concert.id }}" class="editable-content">{{ concert.mgmt_name or '' }}</div></td>
+                        <td>{{ concert.emailed }}</td>
                         <td>
                             <button class="btn btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
                             <button class="btn btn-success d-none" id="save_btn_{{ concert.id }}" onclick="saveRow('{{ concert.id }}')">Save</button>
