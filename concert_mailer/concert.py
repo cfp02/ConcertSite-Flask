@@ -136,7 +136,7 @@ def send_concert_email(concert_id):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
     
-    
+
 @bp.route('/fetch_email_content/<int:concert_id>', methods=['GET'])
 @login_required
 def fetch_email_content(concert_id):
@@ -148,8 +148,9 @@ def fetch_email_content(concert_id):
         # Generate the email content for the given concert
         mail_obj, message = generate_concert_email(concert_id)
         email_content = message.html or message.body
+        email_subject = message.subject
         
-        return jsonify({'success': True, 'email_content': email_content})
+        return jsonify({'success': True, 'email_content': email_content, 'email_subject': email_subject})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 

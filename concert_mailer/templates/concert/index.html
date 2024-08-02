@@ -32,9 +32,9 @@
                         <td><div id="mgmt_name_{{ concert.id }}" class="editable-content cnt">{{ concert.mgmt_name or '' }}</div></td>
                         <td>{{ concert.emailed }}</td>
                         <td>
+                            <button class="btn btn-info" id="email_btn_{{ concert.id }}" data-bs-toggle="modal" data-bs-target="#emailModal" onclick="openEmailModal('{{ concert.id }}')">Email</button>
                             <button class="btn btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
                             <button class="btn btn-success d-none" id="save_btn_{{ concert.id }}" onclick="saveRow('{{ concert.id }}')">Save</button>
-                            <button class="btn btn-info" id="email_btn_{{ concert.id }}" data-bs-toggle="modal" data-bs-target="#emailModal" onclick="openEmailModal('{{ concert.id }}')">Email</button>
                             <!-- Dropdown button for deletion -->
                             <div class="btn-group">
                                 <button class="btn btn-danger dropdown-toggle" type="button" id="deleteDropdown_{{ concert.id }}" data-bs-toggle="dropdown" aria-expanded="false">
@@ -304,6 +304,7 @@
             if (data.success) {
                 // Display email content in the modal
                 document.getElementById('emailContent').innerHTML = data.email_content;
+                document.getElementById('emailModalLabel').innerHTML = data.email_subject;
             } else {
                 alert('Error fetching email content: ' + data.message);
             }

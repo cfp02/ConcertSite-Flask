@@ -72,8 +72,11 @@ def generate_concert_email(concert_id: int):
 
     date_subject, date = date_manipulation(date_datetime)
 
+    mgmt_name = 'there' if concert['mgmt_name'] == '' else concert['mgmt_name']
+
+
     placeholders = {
-        'mgmt_name': concert['mgmt_name'],
+        'mgmt_name': mgmt_name,
         'artist': concert['artist'],
         'venue': concert['venue'],
         'location': '',
