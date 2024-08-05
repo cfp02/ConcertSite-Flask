@@ -18,3 +18,11 @@ CREATE TABLE concert (
     user_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user(id)
 );
+
+CREATE TABLE venues (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    city TEXT,
+    address TEXT,
+    rating INTEGER
+);

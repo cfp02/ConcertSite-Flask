@@ -149,8 +149,9 @@ def fetch_email_content(concert_id):
         mail_obj, message = generate_concert_email(concert_id)
         email_content = message.html or message.body
         email_subject = message.subject
+        email_address = concert['mgmt_email']
         
-        return jsonify({'success': True, 'email_content': email_content, 'email_subject': email_subject})
+        return jsonify({'success': True, 'email_content': email_content, 'email_subject': email_subject, 'email_address': email_address})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 

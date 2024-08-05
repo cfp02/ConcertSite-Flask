@@ -125,6 +125,9 @@
                 <h5 class="modal-title" id="emailModalLabel">Email Content</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeEmailModal()"></button>
             </div>
+            <div class="modal-header">
+                <p class="modal-title" id="modelEmailAddress"></p>
+            </div>
             <div class="modal-body">
                 <!-- Container to display the email content -->
                 <div id="emailContent" class="email-content" style="height: auto;"></div>
@@ -305,6 +308,7 @@
                 // Display email content in the modal
                 document.getElementById('emailContent').innerHTML = data.email_content;
                 document.getElementById('emailModalLabel').innerHTML = data.email_subject;
+                document.getElementById('modelEmailAddress').innerHTML = "To: " + data.email_address;
             } else {
                 alert('Error fetching email content: ' + data.message);
             }

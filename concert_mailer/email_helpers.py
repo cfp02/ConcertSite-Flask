@@ -63,6 +63,9 @@ def date_manipulation(date: datetime):
     return short_date, normal_date
 
 def generate_concert_email(concert_id: int):
+    '''
+    Takes a concert ID and generates the formatted placeholders to be used in the email template.
+    '''
     concert = get_concert(concert_id)
     
     mail_obj: Mail = current_app.extensions['mail']
