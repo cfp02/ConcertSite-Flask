@@ -3,3 +3,4 @@ __pycache__
 *.pyc
 concert_mailer/__pycache__
 concert_mailer/mailpassword.py
+.DS_Store
