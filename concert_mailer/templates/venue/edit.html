@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Edit Venue</h1>
+  <form method="post">
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input type="text" class="form-control" id="name" name="name" value="{{ venue.name }}" required>
+    </div>
+    <div class="form-group">
+      <label for="city">City</label>
+      <input type="text" class="form-control" id="city" name="city" value="{{ venue.city }}">
+    </div>
+    <div class="form-group">
+      <label for="address">Address</label>
+      <input type="text" class="form-control" id="address" name="address" value="{{ venue.address }}">
+    </div>
+    <div class="form-group">
+      <label for="rating">Rating</label>
+      <input type="number" class="form-control" id="rating" name="rating" min="1" max="5" value="{{ venue.rating }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Update Venue</button>
+  </form>
+{% endblock %}

@@ -10,16 +10,17 @@ CREATE TABLE user (
 CREATE TABLE concert (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     artist TEXT NOT NULL,
-    venue TEXT NOT NULL,
+    venue_id INTEGER NOT NULL,
     date TEXT NOT NULL,
     mgmt_email TEXT,
     mgmt_name TEXT,
     emailed BOOLEAN DEFAULT FALSE,
     user_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user(id)
+    FOREIGN KEY (venue_id) REFERENCES venue(id)
 );
 
-CREATE TABLE venues (
+CREATE TABLE venue (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     city TEXT,

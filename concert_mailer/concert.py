@@ -7,7 +7,7 @@ from datetime import datetime
 from flask_mail import Mail, Message
 
 from concert_mailer.auth import login_required
-from concert_mailer.db import get_concerts, count_concerts, insert_concert, update_concert, get_concert, delete_concert
+from concert_mailer.db import get_concerts, count_concerts, insert_concert, update_concert, get_concert, delete_concert, get_venue_by_id, get_all_venues
 from concert_mailer.email_helpers import generate_email, generate_concert_email, send_email, date_manipulation, email_subject_2, template_html_1
 # from concert_mailer import mail_obj as mail
 
@@ -32,6 +32,9 @@ def index():
     # Fetch past concerts
     past_concerts = get_concerts('<', 'DESC', per_page, offset)
 
+    # Fetch all venues
+    venues = get_all_venues()
+
     # Count total future and past concerts for pagination
     total_future = count_concerts('>=')
     total_past = count_concerts('<')
@@ -44,6 +47,7 @@ def index():
         'concert/index.html',
         future_concerts=future_concerts,
         past_concerts=past_concerts,
+        venues = venues,
         page=page,
         total_pages_future=total_pages_future,
         total_pages_past=total_pages_past
@@ -54,7 +58,7 @@ def index():
 def add():
     if request.method == "POST":
         artist = request.form["artist"]
-        venue = request.form["venue"]
+        venue_id = request.form["venue_id"]
         date = request.form["date"]
         mgmt_email = request.form["mgmt_email"]
         mgmt_name = request.form["mgmt_name"]
@@ -63,7 +67,7 @@ def add():
         if not artist:
             error = "Artist is required."
 
-        if not venue:
+        if not venue_id:
             error = "Venue is required."
 
         if not date:
@@ -72,10 +76,13 @@ def add():
         if error is not None:
             flash(error)
         else:
-            insert_concert(artist, venue, date, mgmt_email, mgmt_name, g.user['id'])
+            print("Venue id: ", venue_id)
+            insert_concert(artist, venue_id, date, mgmt_email, mgmt_name, g.user["id"])
             return redirect(url_for("concert.index"))
+    
+    venues = get_all_venues()
 
-    return render_template("concert/add.html")
+    return render_template("concert/add.html", venues = venues)
 
 @bp.route('/update_management/<int:concert_id>', methods=['POST'])
 @login_required
@@ -90,15 +97,15 @@ def update_management(concert_id):
     # mgmt_email = data.get('email') if data.get('email') is not None else concert['mgmt_email']
     # mgmt_name = data.get('name') if data.get('name') is not None else concert['mgmt_name']
     # print(mgmt_email, mgmt_name)
-    logging.debug(f"Incoming data: {data}")
+    logging.debug(f"Incoming data: id: {concert_id} {data}")
     # logging.debug(f"Updating concert ID {concert_id} with mgmt_email: {mgmt_email}, mgmt_name: {mgmt_name}")
 
     try:
         update_concert(
             concert_id,
-            data.get('date', concert['date']),
+            data.get('date', concert['date']), # Looks for date in the incoming data, if not found, uses the existing date from the concert database call
             data.get('artist', concert['artist']),
-            data.get('venue', concert['venue']),
+            data.get('venue_id', concert['venue_id']), # Takes venue ID from the concert database call
             data.get('mgmt_email', concert['mgmt_email']),
             data.get('mgmt_name', concert['mgmt_name'])
         )
@@ -130,7 +137,7 @@ def send_concert_email(concert_id):
 
     try:
         send_email(mail_obj, message)
-        update_concert(concert_id, concert['date'], concert['artist'], concert['venue'], concert['mgmt_email'], concert['mgmt_name'], emailed=True)
+        update_concert(concert_id, concert['date'], concert['artist'], concert['venue_id'], concert['mgmt_email'], concert['mgmt_name'], emailed=True)
         email_content = message.html or message.body
         return jsonify({'success': True, 'email_content': email_content})
     except Exception as e:
@@ -141,9 +148,10 @@ def send_concert_email(concert_id):
 @login_required
 def fetch_email_content(concert_id):
     concert = get_concert(concert_id)
+    
     if concert is None:
         return jsonify({'success': False, 'message': 'Concert not found'}), 404
-    
+    print(concert['artist'])
     try:
         # Generate the email content for the given concert
         mail_obj, message = generate_concert_email(concert_id)

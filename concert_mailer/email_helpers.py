@@ -3,7 +3,7 @@ import os
 import logging
 from flask_mail import Mail, Message
 from flask import current_app
-from concert_mailer.db import get_concert
+from concert_mailer.db import get_concert, get_venue_by_id
 
 email_subject_1 = "Photography inquiry for {{artist}} at {{venue}} on {{date_subject}}"
 email_subject_2 = "Photography inquiry for {{artist}} at {{venue}} ({{date_subject}})"
@@ -77,17 +77,20 @@ def generate_concert_email(concert_id: int):
 
     mgmt_name = 'there' if concert['mgmt_name'] == '' else concert['mgmt_name']
 
+    venue_name = get_venue_by_id(concert['venue_id'])['name']
+
 
     placeholders = {
         'mgmt_name': mgmt_name,
         'artist': concert['artist'],
-        'venue': concert['venue'],
+        'venue': venue_name,
         'location': '',
         'date': date,
         'date_subject': date_subject
     }
 
-   
+    print(placeholders)
+    
     new_mail_obj, msg = generate_email(mail_obj, [concert['mgmt_email']], template_html_1, placeholders, sender='Cole Parks Photography',subject=email_subject_2)
 
     return new_mail_obj, msg

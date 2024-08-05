@@ -4,7 +4,10 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>-</h1>
-        <a href="{{ url_for('concert.add') }}" class="btn btn-primary">Add -</a>
+        <div>
+            <a href="{{ url_for('concert.add') }}" class="btn btn-primary">Add C</a>
+            <a href="{{ url_for('venue.index') }}" class="btn btn-primary">V</a>
+        </div>
     </div>
     
     <!-- Future Concerts -->
@@ -27,7 +30,14 @@
                     <tr id="row_{{ concert.id }}" class = "table-row-scraper">
                         <td><div id="concert_date_{{ concert.id }}" class="editable-content cnt">{{ concert.date }}</div></td>
                         <td><div id="concert_artist_{{ concert.id }}" class="editable-content cnt">{{ concert.artist }}</div></td>
-                        <td><div id="concert_venue_{{ concert.id }}" class="editable-content cnt">{{ concert.venue }}</div></td>
+                        <td>
+                            <div id="concert_venue_{{ concert.id }}" class="editable-content cnt" data-venue-id="{{ concert.venue_id }}">{{ concert.venue }}</div>
+                            <select id="venue_dropdown_{{ concert.id }}" class="form-control d-none">
+                                {% for venue in venues %}
+                                    <option value="{{ venue.id }}" {% if venue.id == concert.venue_id %}selected{% endif %}>{{ venue.name }} ({{ venue.city }})</option>
+                                {% endfor %}
+                            </select>
+                        </td>
                         <td><div id="mgmt_email_{{ concert.id }}" class="editable-content cnt">{{ concert.mgmt_email or '' }}</div></td>
                         <td><div id="mgmt_name_{{ concert.id }}" class="editable-content cnt">{{ concert.mgmt_name or '' }}</div></td>
                         <td>{{ concert.emailed }}</td>
@@ -82,7 +92,14 @@
                     <tr id="row_{{ concert.id }}" class = "table-row-scraper">
                         <td><div id="concert_date_{{ concert.id }}" class="editable-content">{{ concert.date }}</div></td>
                         <td><div id="concert_artist_{{ concert.id }}" class="editable-content">{{ concert.artist }}</div></td>
-                        <td><div id="concert_venue_{{ concert.id }}" class="editable-content">{{ concert.venue }}</div></td>
+                        <td>
+                            <div id="concert_venue_{{ concert.id }}" class="editable-content cnt">{{ concert.venue }}</div>
+                            <select id="venue_dropdown_{{ concert.id }}" class="form-control d-none">
+                                {% for venue in venues %}
+                                    <option value="{{ venue.id }}" {% if venue.id == concert.venue_id %}selected{% endif %}>{{ venue.name }} ({{ venue.city }})</option>
+                                {% endfor %}
+                            </select>
+                        </td>
                         <td><div id="mgmt_email_{{ concert.id }}" class="editable-content">{{ concert.mgmt_email or '' }}</div></td>
                         <td><div id="mgmt_name_{{ concert.id }}" class="editable-content">{{ concert.mgmt_name or '' }}</div></td>
                         <td>{{ concert.emailed }}</td>
@@ -153,6 +170,9 @@
         const row = document.getElementById(`row_${concertId}`);
         const isEditing = saveButton.classList.contains('d-none');
 
+        const venueDiv = document.getElementById(`concert_venue_${concertId}`);
+        const venueSelect = document.getElementById(`venue_dropdown_${concertId}`);
+
         if (isEditing) {
             // Start editing
             editButton.classList.add('d-none');
@@ -160,7 +180,14 @@
             emailButton.classList.add('d-none');
             deleteButton.classList.add('d-none'); // Might be the other way around
 
+            venueDiv.classList.add('d-none');
+            venueSelect.classList.remove('d-none');
+
             row.classList.add('table-warning');
+
+            // // Set the selected option in the dropdown to the current venue
+            // const currentVenueId = venueDiv.dataset.venueId;
+            // venueSelect.value = currentVenueId;
 
             // Make fields editable
             const fields = [
@@ -210,6 +237,9 @@
             deleteButton.classList.remove('d-none');
             row.classList.remove('table-warning');
 
+            venueDiv.classList.remove('d-none');
+            venueSelect.classList.add('d-none');
+
             // Make fields non-editable
             const fields = [
                 `concert_date_${concertId}`,
@@ -244,6 +274,14 @@
                     }
                 }
             });
+
+            // Update venue display after saving
+            const selectedVenueName = venueSelect.options[venueSelect.selectedIndex].text;
+            // Strip off the city name from the venue display
+            const venueNameNoCity = selectedVenueName.split('(')[0];
+            venueDiv.innerText = venueNameNoCity;
+            venueDiv.dataset.venueId = venueSelect.value; 
+
         }
     }
 
@@ -252,7 +290,7 @@
         const data = {
             concert_date: document.getElementById(`concert_date_${concertId}`).innerText,
             concert_artist: document.getElementById(`concert_artist_${concertId}`).innerText,
-            concert_venue: document.getElementById(`concert_venue_${concertId}`).innerText,
+            venue_id: document.getElementById(`venue_dropdown_${concertId}`).value,
             mgmt_email: document.getElementById(`mgmt_email_${concertId}`).innerText,
             mgmt_name: document.getElementById(`mgmt_name_${concertId}`).innerText
         };

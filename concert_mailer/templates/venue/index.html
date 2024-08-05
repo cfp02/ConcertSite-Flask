@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>V</h1>
+  <a href="{{ url_for('venue.add') }}" class="btn btn-primary" style="margin-bottom: 10px; margin-top: 10px;">Add Venue</a>
+  
+  <ul>
+    {% for venue in venues %}
+      <li>
+        {{ venue.name }} ({{ venue.city }}, {{ venue.address }}, Rating: {{ venue.rating }})
+        <a href="{{ url_for('venue.edit', id=venue.id) }}">Edit</a>
+        <form action="{{ url_for('venue.delete', id=venue.id) }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

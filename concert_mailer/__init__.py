@@ -51,5 +51,8 @@ def create_app(test_config=None):
     app.register_blueprint(concert.bp)
     app.add_url_rule('/', endpoint='index')
 
+    from . import venue
+    app.register_blueprint(venue.bp)
+
 
     return app
