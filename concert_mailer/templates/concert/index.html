@@ -7,13 +7,16 @@
         <div>
             <a href="{{ url_for('concert.add') }}" class="btn btn-primary">Add C</a>
             <a href="{{ url_for('venue.index') }}" class="btn btn-primary">V</a>
+            <form action="{{ url_for('scraping.scrape_concerts') }}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-primary">Scrape</button>
+            </form>
         </div>
     </div>
     
     <!-- Future Concerts -->
     <h2>Future -</h2>
     <div class="table-responsive shadow-lg p-3 mb-5 bg-white rounded">
-        <table class="table table-striped table-hover">
+        <table class="table table-striped table-hover align-middle">
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">Date</th>
@@ -354,7 +357,7 @@
         .catch(error => {
             console.error('Error:', error);
         });
-}
+    }
 
     function sendEmail() {
 
@@ -386,7 +389,7 @@
     }
 
     function deleteConcert(concertId) {
-    if (confirm('Are you sure you want to delete this concert?')) {
+    // if (confirm('Are you sure you want to delete this concert?')) {
         fetch(`/delete_concert/${concertId}`, {
             method: 'POST',
             headers: {
@@ -403,7 +406,7 @@
             if (data.success) {
                 // Remove the row from the table
                 document.getElementById(`row_${concertId}`).remove();
-                alert('Concert deleted successfully!');
+                // alert('Concert deleted successfully!');
             } else {
                 alert('Error deleting concert: ' + data.message);
             }
@@ -411,7 +414,7 @@
         .catch(error => {
             console.error('Error:', error);
         });
-    }
+    // }
 }
 
     
@@ -423,7 +426,7 @@
         border-radius: 4px; /* Rounded corners */
         background-color: rgba(255, 255, 255, 0); /* Consistent background color */
         box-sizing: border-box; /* Ensure padding/border does not affect width */
-        height: 40px; /* Maintain row height */
+        /* height: 40px; Maintain row height */
         vertical-align:middle; /* Center text vertically */
     }
 

@@ -56,13 +56,41 @@ def count_concerts(date_filter):
         (datetime.today().date(),)
     ).fetchone()[0]
 
-def insert_concert(artist, venue_id, date, mgmt_email, mgmt_name, user_id):
+def insert_concert(artist, date, mgmt_email, mgmt_name, user_id, venue_id=None, venue_name=None):
     db = get_db()
+    
+    if venue_id is None and venue_name is not None:
+        # Check if the venue already exists
+        venue = db.execute(
+            "SELECT id FROM venue WHERE name = ?",
+            (venue_name,)
+        ).fetchone()
+
+        if venue is None:
+            # Venue does not exist, insert it
+            db.execute(
+                "INSERT INTO venue (name) VALUES (?)",
+                (venue_name,)
+            )
+            db.commit()
+            # Fetch the new venue ID
+            venue = db.execute(
+                "SELECT id FROM venue WHERE name = ?",
+                (venue_name,)
+            ).fetchone()
+        
+        venue_id = venue['id']
+
+    if venue_id is None:
+        raise ValueError("Either venue_id or venue_name must be provided.")
+
+    # Insert the concert with the venue_id
     db.execute(
         'INSERT INTO concert (artist, venue_id, date, mgmt_email, mgmt_name, emailed, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
         (artist, venue_id, date, mgmt_email, mgmt_name, False, user_id)
     )
     db.commit()
+
 
 def update_concert(concert_id, date, artist, venue_id, mgmt_email, mgmt_name, emailed = None):
     db = get_db()

@@ -54,5 +54,8 @@ def create_app(test_config=None):
     from . import venue
     app.register_blueprint(venue.bp)
 
+    from . import scraping
+    app.register_blueprint(scraping.bp)
+
 
     return app
