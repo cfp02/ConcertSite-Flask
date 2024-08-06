@@ -11,26 +11,34 @@
           <div>
             <b>{{ venue.name }}</b> ({{ venue.city }}, {{ venue.address }}, Rating: {{ venue.rating }})
             <br>
-            Minimal Substring: <span id="minimal_substring-{{ venue.id }}">{{ venue.minimal_substring | default('') }}</span>
+            <i>Minimal Substring:</i> <span id="minimal_substring-{{ venue.id }}">{{ venue.minimal_substring | default('') }}</span>
             <br>
-            Venue Email Text: <span id="venue_email_text-{{ venue.id }}">{{ venue.venue_email_text | default('') }}</span>
+            <i>Venue Email Text:</i> <span id="venue_email_text-{{ venue.id }}">{{ venue.venue_email_text | default('') }}</span>
           </div>
           <div>
             <a href="{{ url_for('venue.edit', id=venue.id) }}" class="btn btn-sm btn-info">Edit</a>
-            <button onclick="deleteVenue('{{ venue.id }}')" class="btn btn-sm btn-danger">Delete</button>
+            <!-- Dropdown for Delete -->
+            <div class="btn-group">
+              <button class="btn btn-sm btn-danger dropdown-toggle" type="button" id="deleteDropdown-{{ venue.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                Delete
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="deleteDropdown-{{ venue.id }}">
+                <li><a class="dropdown-item" href="#" onclick="deleteVenue('{{ venue.id }}')">Confirm Delete</a></li>
+              </ul>
+            </div>
           </div>
         </div>
         <ul>
-          <li>Aliases:
+          <div>Aliases:
             <ul id="aliases-{{ venue.id }}">
               {% for alias in venue.aliases %}
                 <li id="alias-{{ alias.id }}">
                   {{ alias.alias }}
-                  <button onclick="deleteAlias('{{ alias.id }}', '{{ venue.id }}')" class="btn btn-sm btn-danger">Delete</button>
+                  <button onclick="deleteAlias('{{ alias.id }}', '{{ venue.id }}')" class="btn btn-sm btn-danger">X</button>
                 </li>
               {% endfor %}
             </ul>
-          </li>
+          </div>
         </ul>
         <form id="add-alias-form-{{ venue.id }}" onsubmit="addAlias(event, '{{ venue.id }}')" class="mt-2">
           <div class="input-group">
@@ -62,7 +70,7 @@
           const newAlias = document.createElement('li');
           newAlias.id = `alias-${data.alias_id}`;
           newAlias.innerHTML = `${alias} 
-            <button onclick="deleteAlias('${data.alias_id}', '${venueId}')" class="btn btn-sm btn-danger">Delete</button>`;
+            <button onclick="deleteAlias('${data.alias_id}', '${venueId}')" class="btn btn-sm btn-danger">X</button>`;
           aliasList.appendChild(newAlias);
           form.reset();
         } else {
@@ -87,6 +95,7 @@
     }
 
     function deleteVenue(venueId) {
+      event.preventDefault();
       fetch(`/venue/delete/${venueId}`, {
         method: 'POST'
       })
