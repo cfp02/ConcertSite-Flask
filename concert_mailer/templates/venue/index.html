@@ -1,18 +1,110 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1>V</h1>
-  <a href="{{ url_for('venue.add') }}" class="btn btn-primary" style="margin-bottom: 10px; margin-top: 10px;">Add Venue</a>
+  <h1>Venues</h1>
+  <a href="{{ url_for('venue.add') }}" class="btn btn-primary mb-3 mt-3">Add Venue</a>
   
-  <ul>
+  <ul class="list-group">
     {% for venue in venues %}
-      <li>
-        {{ venue.name }} ({{ venue.city }}, {{ venue.address }}, Rating: {{ venue.rating }})
-        <a href="{{ url_for('venue.edit', id=venue.id) }}">Edit</a>
-        <form action="{{ url_for('venue.delete', id=venue.id) }}" method="post" style="display:inline;">
-          <button type="submit" class="btn btn-danger">Delete</button>
+      <li id="venue-{{ venue.id }}" class="list-group-item {% if not venue.minimal_substring or not venue.venue_email_text %}highlight{% endif %}">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <b>{{ venue.name }}</b> ({{ venue.city }}, {{ venue.address }}, Rating: {{ venue.rating }})
+            <br>
+            Minimal Substring: <span id="minimal_substring-{{ venue.id }}">{{ venue.minimal_substring | default('') }}</span>
+            <br>
+            Venue Email Text: <span id="venue_email_text-{{ venue.id }}">{{ venue.venue_email_text | default('') }}</span>
+          </div>
+          <div>
+            <a href="{{ url_for('venue.edit', id=venue.id) }}" class="btn btn-sm btn-info">Edit</a>
+            <button onclick="deleteVenue('{{ venue.id }}')" class="btn btn-sm btn-danger">Delete</button>
+          </div>
+        </div>
+        <ul>
+          <li>Aliases:
+            <ul id="aliases-{{ venue.id }}">
+              {% for alias in venue.aliases %}
+                <li id="alias-{{ alias.id }}">
+                  {{ alias.alias }}
+                  <button onclick="deleteAlias('{{ alias.id }}', '{{ venue.id }}')" class="btn btn-sm btn-danger">Delete</button>
+                </li>
+              {% endfor %}
+            </ul>
+          </li>
+        </ul>
+        <form id="add-alias-form-{{ venue.id }}" onsubmit="addAlias(event, '{{ venue.id }}')" class="mt-2">
+          <div class="input-group">
+            <input type="text" name="alias" class="form-control" placeholder="Add alias" required>
+            <div class="input-group-append">
+              <button type="submit" class="btn btn-primary">Add Alias</button>
+            </div>
+          </div>
         </form>
       </li>
     {% endfor %}
   </ul>
+
+  <script>
+    function addAlias(event, venueId) {
+      event.preventDefault();
+      const form = document.getElementById(`add-alias-form-${venueId}`);
+      const formData = new FormData(form);
+      const alias = formData.get('alias');
+
+      fetch(`/venue/add_alias/${venueId}`, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const aliasList = document.getElementById(`aliases-${venueId}`);
+          const newAlias = document.createElement('li');
+          newAlias.id = `alias-${data.alias_id}`;
+          newAlias.innerHTML = `${alias} 
+            <button onclick="deleteAlias('${data.alias_id}', '${venueId}')" class="btn btn-sm btn-danger">Delete</button>`;
+          aliasList.appendChild(newAlias);
+          form.reset();
+        } else {
+          alert('Failed to add alias: ' + data.error);
+        }
+      });
+    }
+
+    function deleteAlias(aliasId, venueId) {
+      fetch(`/venue/delete_alias/${aliasId}/${venueId}`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const aliasElement = document.getElementById(`alias-${aliasId}`);
+          aliasElement.remove();
+        } else {
+          alert('Failed to delete alias: ' + data.error);
+        }
+      });
+    }
+
+    function deleteVenue(venueId) {
+      fetch(`/venue/delete/${venueId}`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const venueElement = document.getElementById(`venue-${venueId}`);
+          venueElement.remove();
+        } else {
+          alert('Failed to delete venue: ' + data.error);
+        }
+      });
+    }
+  </script>
+
+  <style>
+    .highlight {
+      background-color: #fff3cd; /* Light yellow background for highlighting */
+    }
+  </style>
 {% endblock %}

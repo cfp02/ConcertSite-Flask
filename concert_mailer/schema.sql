@@ -16,7 +16,7 @@ CREATE TABLE concert (
     mgmt_name TEXT,
     emailed BOOLEAN DEFAULT FALSE,
     user_id INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES user(id)
+    FOREIGN KEY (user_id) REFERENCES user(id),
     FOREIGN KEY (venue_id) REFERENCES venue(id)
 );
 
@@ -25,5 +25,14 @@ CREATE TABLE venue (
     name TEXT NOT NULL,
     city TEXT,
     address TEXT,
-    rating INTEGER
+    rating INTEGER,
+    minimal_substring TEXT,
+    venue_email_text TEXT
+);
+
+CREATE TABLE venue_alias (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alias TEXT NOT NULL,
+    venue_id INTEGER NOT NULL,
+    FOREIGN KEY (venue_id) REFERENCES venue (id) ON DELETE CASCADE
 );

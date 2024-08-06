@@ -17,8 +17,16 @@
     </div>
     <div class="form-group">
       <label for="rating">Rating</label>
-      <input type="number" class="form-control" id="rating" name="rating" min="1" max="5" value="{{ venue.rating }}">
+      <input type="number" class="form-control" id="rating" name="rating" value="{{ venue.rating }}">
     </div>
-    <button type="submit" class="btn btn-primary">Update Venue</button>
+    <div class="form-group">
+      <label for="minimal_substring">Minimal Substring</label>
+      <input type="text" class="form-control" id="minimal_substring" name="minimal_substring" value="{{ venue.minimal_substring or '' }}">
+    </div>
+    <div class="form-group">
+      <label for="venue_email_text">Venue Email Text</label>
+      <input type="text" class="form-control" id="venue_email_text" name="venue_email_text" value="{{ venue.venue_email_text or '' }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
   </form>
 {% endblock %}

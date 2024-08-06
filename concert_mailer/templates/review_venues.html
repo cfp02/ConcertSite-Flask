@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Review Unrecognized Venues</h1>
+    <form method="post">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Artist</th>
+                    <th>Date</th>
+                    <th>Management Email</th>
+                    <th>Management Name</th>
+                    <th>Unrecognized Venue</th>
+                    <th>Existing Venues</th>
+                    <th>Alias</th>
+                    <th>Substring</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for concert in unrecognized_venues %}
+                <tr>
+                    <td>{{ concert.artist }}</td>
+                    <td>{{ concert.date }}</td>
+                    <td>{{ concert.mgmt_email }}</td>
+                    <td>{{ concert.mgmt_name }}</td>
+                    <td>{{ concert.venue_name }}</td>
+                    <td>
+                        <select name="venue_id">
+                            {% for venue in venues %}
+                            <option value="{{ venue.id }}">{{ venue.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="alias" value="{{ concert.venue_name }}" required>
+                    </td>
+                    <td>
+                        <input type="text" name="substring">
+                    </td>
+                    <td>
+                        <button type="submit" class="btn btn-primary">Map Venue</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+</div>
+{% endblock %}

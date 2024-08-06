@@ -9,6 +9,7 @@ from flask_mail import Mail, Message
 from concert_mailer.auth import login_required
 from concert_mailer.db import get_concerts, count_concerts, insert_concert, update_concert, get_concert, delete_concert, get_venue_by_id, get_all_venues
 from concert_mailer.email_helpers import generate_email, generate_concert_email, send_email, date_manipulation, email_subject_2, template_html_1
+from concert_mailer.db import get_db
 # from concert_mailer import mail_obj as mail
 
 bp = Blueprint('concert', __name__)
@@ -171,3 +172,45 @@ def delete_concert_route(concert_id):
     except Exception as e:
         print(e)
         return jsonify({'success': False, 'message': 'Failed to delete concert'})
+
+
+@bp.route('/review_venues', methods=['GET', 'POST'])
+@login_required
+def review_venues():
+    db = get_db()
+    
+    if request.method == 'POST':
+        alias = request.form['alias']
+        substring = request.form['substring']
+        venue_id = request.form['venue_id']
+        
+        # Insert the alias into the venue_alias table
+        db.execute(
+            "INSERT INTO venue_alias (alias, venue_id) VALUES (?, ?)",
+            (alias, venue_id)
+        )
+        
+        # Update the minimal substring for the venue
+        db.execute(
+            "UPDATE venue SET minimal_substring = ? WHERE id = ?",
+            (substring, venue_id)
+        )
+        
+        db.commit()
+        flash('Venue alias and substring updated successfully.')
+        return redirect(url_for('concert.review_venues'))
+
+    # Fetch unrecognized venues
+    unrecognized_venues = db.execute(
+        """
+        SELECT DISTINCT c.id, c.artist, c.date, c.mgmt_email, c.mgmt_name, v.name as venue_name, v.id as venue_id
+        FROM concert c
+        JOIN venue v ON c.venue_id = v.id
+        LEFT JOIN venue_alias va ON va.alias = v.name
+        WHERE va.alias IS NULL
+        """
+    ).fetchall()
+    
+    venues = db.execute("SELECT id, name FROM venue").fetchall()
+    
+    return render_template('review_venues.html', unrecognized_venues=unrecognized_venues, venues=venues)

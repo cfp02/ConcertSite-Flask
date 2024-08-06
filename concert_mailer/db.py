@@ -56,33 +56,50 @@ def count_concerts(date_filter):
         (datetime.today().date(),)
     ).fetchone()[0]
 
-def insert_concert(artist, date, mgmt_email, mgmt_name, user_id, venue_id=None, venue_name=None):
+def insert_concert(artist, venue_name, date, mgmt_email, mgmt_name, user_id):
     db = get_db()
     
-    if venue_id is None and venue_name is not None:
-        # Check if the venue already exists
+    # See if the passed venue_name is an alias
+    venue = db.execute(
+        "SELECT venue_id FROM venue_alias WHERE alias = ?",
+        (venue_name,)
+    ).fetchone()
+
+    if venue is None:
+        # Check if the venue substring exists
         venue = db.execute(
-            "SELECT id FROM venue WHERE name = ?",
+            "SELECT id FROM venue WHERE ? LIKE '%' || minimal_substring || '%'",
             (venue_name,)
         ).fetchone()
 
         if venue is None:
-            # Venue does not exist, insert it
-            db.execute(
-                "INSERT INTO venue (name) VALUES (?)",
-                (venue_name,)
-            )
-            db.commit()
-            # Fetch the new venue ID
+            # Check if the venue itself exists
             venue = db.execute(
                 "SELECT id FROM venue WHERE name = ?",
                 (venue_name,)
             ).fetchone()
-        
-        venue_id = venue['id']
 
-    if venue_id is None:
-        raise ValueError("Either venue_id or venue_name must be provided.")
+            if venue is None:
+                # Venue does not exist, insert it with a temporary name
+                db.execute(
+                    "INSERT INTO venue (name, minimal_substring) VALUES (?, ?)",
+                    (venue_name, venue_name)
+                )
+                db.commit()
+                # Fetch the new venue ID
+                venue = db.execute(
+                    "SELECT id FROM venue WHERE name = ?",
+                    (venue_name,)
+                ).fetchone()
+
+            # Insert the alias for the newly created venue
+            db.execute(
+                "INSERT INTO venue_alias (alias, venue_id) VALUES (?, ?)",
+                (venue_name, venue['id'])
+            )
+            db.commit()
+    
+    venue_id = venue['venue_id'] if 'venue_id' in venue else venue['id']
 
     # Insert the concert with the venue_id
     db.execute(
@@ -90,6 +107,42 @@ def insert_concert(artist, date, mgmt_email, mgmt_name, user_id, venue_id=None, 
         (artist, venue_id, date, mgmt_email, mgmt_name, False, user_id)
     )
     db.commit()
+
+
+# def insert_concert(artist, date, mgmt_email, mgmt_name, user_id, venue_id=None, venue_name=None):
+#     db = get_db()
+    
+#     if venue_id is None and venue_name is not None:
+#         # Check if the venue already exists
+#         venue = db.execute(
+#             "SELECT id FROM venue WHERE name = ?",
+#             (venue_name,)
+#         ).fetchone()
+
+#         if venue is None:
+#             # Venue does not exist, insert it
+#             db.execute(
+#                 "INSERT INTO venue (name) VALUES (?)",
+#                 (venue_name,)
+#             )
+#             db.commit()
+#             # Fetch the new venue ID
+#             venue = db.execute(
+#                 "SELECT id FROM venue WHERE name = ?",
+#                 (venue_name,)
+#             ).fetchone()
+        
+#         venue_id = venue['id']
+
+#     if venue_id is None:
+#         raise ValueError("Either venue_id or venue_name must be provided.")
+
+#     # Insert the concert with the venue_id
+#     db.execute(
+#         'INSERT INTO concert (artist, venue_id, date, mgmt_email, mgmt_name, emailed, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+#         (artist, venue_id, date, mgmt_email, mgmt_name, False, user_id)
+#     )
+#     db.commit()
 
 
 def update_concert(concert_id, date, artist, venue_id, mgmt_email, mgmt_name, emailed = None):
@@ -119,29 +172,60 @@ def delete_concert(concert_id):
 
 def get_all_venues():
     db = get_db()
-    return db.execute('SELECT * FROM venue').fetchall()
+    venues = db.execute('SELECT * FROM venue').fetchall()
+    
+    venue_list = []
+    for venue in venues:
+        venue_dict = dict(venue)
+        venue_dict['minimal_substring'] = venue_dict['minimal_substring'] or ''
+        venue_dict['venue_email_text'] = venue_dict['venue_email_text'] or ''
+        venue_dict['aliases'] = get_aliases_by_venue_id(venue['id'])
+        venue_list.append(venue_dict)
 
-def get_venue_by_id(venue_id):
+    return venue_list
+
+
+def get_venue_by_id(id):
     db = get_db()
-    return db.execute('SELECT * FROM venue WHERE id = ?', (venue_id,)).fetchone()
+    return db.execute('SELECT * FROM venue WHERE id = ?', (id,)).fetchone()
 
-def insert_venue(venue_name, city = None, address = None, rating = None):
+def get_aliases_by_venue_id(venue_id):
+    db = get_db()
+    aliases = db.execute('SELECT * FROM venue_alias WHERE venue_id = ?', (venue_id,)).fetchall()
+    return [dict(alias) for alias in aliases]
+
+def insert_venue(name, city, address, rating):
     db = get_db()
     db.execute(
         'INSERT INTO venue (name, city, address, rating) VALUES (?, ?, ?, ?)',
-        (venue_name, city, address, rating)
+        (name, city, address, rating)
     )
     db.commit()
 
-def update_venue(venue_id, venue_name, city, address, rating):
+def update_venue(id, name, city, address, rating, minimal_substring, venue_email_text):
     db = get_db()
     db.execute(
-        'UPDATE venue SET name = ?, city = ?, address = ?, rating = ? WHERE id = ?',
-        (venue_name, city, address, rating, venue_id)
+        'UPDATE venue SET name = ?, city = ?, address = ?, rating = ?, minimal_substring = ?, venue_email_text = ? WHERE id = ?',
+        (name, city, address, rating, minimal_substring, venue_email_text, id)
     )
     db.commit()
 
-def delete_venue(venue_id):
+
+def delete_venue(id):
     db = get_db()
-    db.execute('DELETE FROM venue WHERE id = ?', (venue_id,))
+    db.execute('DELETE FROM venue WHERE id = ?', (id,))
+    db.commit()
+
+def insert_alias(alias, venue_id):
+    db = get_db()
+    cursor = db.execute(
+        'INSERT INTO venue_alias (alias, venue_id) VALUES (?, ?)',
+        (alias, venue_id)
+    )
+    db.commit()
+    return cursor.lastrowid
+
+def delete_alias(id):
+    db = get_db()
+    db.execute('DELETE FROM venue_alias WHERE id = ?', (id,))
     db.commit()
