@@ -58,28 +58,36 @@ def count_concerts(date_filter):
 
 def insert_concert(artist, venue_name, date, mgmt_email, mgmt_name, user_id):
     db = get_db()
-    
-    # See if the passed venue_name is an alias
+
+    venue_id = None
+
+    # See if the passed venue_name is an alias, fetch one venue that maches
     venue = db.execute(
         "SELECT venue_id FROM venue_alias WHERE alias = ?",
         (venue_name,)
     ).fetchone()
 
-    if venue is None:
-        # Check if the venue substring exists
+    if venue:
+        venue_id = venue['venue_id']
+    else:
+        # Check if the venue substring exists in the venue name
         venue = db.execute(
             "SELECT id FROM venue WHERE ? LIKE '%' || minimal_substring || '%'",
             (venue_name,)
         ).fetchone()
 
-        if venue is None:
-            # Check if the venue itself exists
+        if venue:
+            venue_id = venue['id']
+        else:
+            # Check if the venue_name is the title of the venue
             venue = db.execute(
                 "SELECT id FROM venue WHERE name = ?",
                 (venue_name,)
             ).fetchone()
 
-            if venue is None:
+            if venue:
+                venue_id = venue['id']
+            else:
                 # Venue does not exist, insert it with a temporary name
                 db.execute(
                     "INSERT INTO venue (name, minimal_substring) VALUES (?, ?)",
@@ -91,15 +99,17 @@ def insert_concert(artist, venue_name, date, mgmt_email, mgmt_name, user_id):
                     "SELECT id FROM venue WHERE name = ?",
                     (venue_name,)
                 ).fetchone()
+                venue_id = venue['id']
 
             # Insert the alias for the newly created venue
             db.execute(
                 "INSERT INTO venue_alias (alias, venue_id) VALUES (?, ?)",
-                (venue_name, venue['id'])
+                (venue_name, venue_id)
             )
             db.commit()
-    
-    venue_id = venue['venue_id'] if 'venue_id' in venue else venue['id']
+
+    if venue_id is None:
+        raise ValueError("Failed to determine venue ID")
 
     # Insert the concert with the venue_id
     db.execute(
@@ -107,6 +117,7 @@ def insert_concert(artist, venue_name, date, mgmt_email, mgmt_name, user_id):
         (artist, venue_id, date, mgmt_email, mgmt_name, False, user_id)
     )
     db.commit()
+
 
 
 # def insert_concert(artist, date, mgmt_email, mgmt_name, user_id, venue_id=None, venue_name=None):

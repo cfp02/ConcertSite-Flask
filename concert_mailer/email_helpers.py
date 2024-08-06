@@ -77,13 +77,15 @@ def generate_concert_email(concert_id: int):
 
     mgmt_name = 'there' if concert['mgmt_name'] == '' else concert['mgmt_name']
 
-    venue_name = get_venue_by_id(concert['venue_id'])['name']
+    venue = get_venue_by_id(concert['venue_id'])
+    venue_name = venue['name']
+    venue_email_text = venue['venue_email_text'] or venue_name  # Fallback to venue name if email text is not set
 
 
     placeholders = {
         'mgmt_name': mgmt_name,
         'artist': concert['artist'],
-        'venue': venue_name,
+        'venue': venue_email_text,
         'location': '',
         'date': date,
         'date_subject': date_subject

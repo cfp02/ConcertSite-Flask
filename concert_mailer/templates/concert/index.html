@@ -6,7 +6,6 @@
         <h1>-</h1>
         <div>
             <a href="{{ url_for('concert.add') }}" class="btn btn-primary">Add C</a>
-            <a href="{{ url_for('venue.index') }}" class="btn btn-primary">V</a>
             <form action="{{ url_for('scraping.scrape_concerts') }}" method="post" style="display:inline;">
                 <button type="submit" class="btn btn-primary">Scrape</button>
             </form>
