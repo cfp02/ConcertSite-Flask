@@ -21,6 +21,12 @@
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('venue.index') }}">Venues</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('scraping.scraping') }}">Queries</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" > - </a>
+          </li>
           {% if g.user %}
             <li class="nav-item">
               <span class="nav-link">{{ g.user['username'] }}</span>
