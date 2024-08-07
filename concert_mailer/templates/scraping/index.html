@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Scraping Configuration</h1>
+  
+  <div>
+    {% for website in websites %}
+      <h2>{{ website.name }}</h2>
+      <ul id="queries-{{ website.id }}">
+        {% for query in scrape_queries if query.website_id == website.id %}
+          <li id="query-{{ query.id }}">
+            {{ query.city }}, {{ query.month }}
+            <button onclick="deleteQuery('{{ query.id }}')" class="btn btn-danger btn-sm">Delete</button>
+          </li>
+        {% endfor %}
+      </ul>
+      <form id="add-query-form-{{ website.id }}" onsubmit="addQuery(event, '{{ website.id }}')">
+        <input type="text" name="city" placeholder="City" required>
+        <input type="text" name="month" placeholder="Month" required>
+        <button type="submit" class="btn btn-primary">Add Query</button>
+      </form>
+    {% endfor %}
+  </div>
+
+  <script>
+    function addQuery(event, websiteId) {
+      event.preventDefault();
+      const form = document.getElementById(`add-query-form-${websiteId}`);
+      const formData = new FormData(form);
+      const city = formData.get('city');
+      const month = formData.get('month');
+
+      fetch('/add_scrape_query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ website_id: websiteId, city: city, month: month })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const queryList = document.getElementById(`queries-${websiteId}`);
+        const newQuery = document.createElement('li');
+        newQuery.innerHTML = `${city}, ${month} <button onclick="deleteQuery(${data.query_id})" class="btn btn-danger btn-sm">Delete</button>`;
+        queryList.appendChild(newQuery);
+        form.reset();
+      });
+    }
+
+    function deleteQuery(queryId) {
+      fetch(`/delete_scrape_query/${queryId}`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        const queryElement = document.getElementById(`query-${queryId}`);
+        queryElement.remove();
+      });
+    }
+  </script>
+{% endblock %}

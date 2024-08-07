@@ -44,12 +44,12 @@
                         <td><div id="mgmt_name_{{ concert.id }}" class="editable-content cnt">{{ concert.mgmt_name or '' }}</div></td>
                         <td>{{ concert.emailed }}</td>
                         <td>
-                            <button class="btn btn-info" id="email_btn_{{ concert.id }}" data-bs-toggle="modal" data-bs-target="#emailModal" onclick="openEmailModal('{{ concert.id }}')">Email</button>
-                            <button class="btn btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
+                            <button class="btn btn-sm btn-info" id="email_btn_{{ concert.id }}" data-bs-toggle="modal" data-bs-target="#emailModal" onclick="openEmailModal('{{ concert.id }}')">Email</button>
+                            <button class="btn btn-sm btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
                             <button class="btn btn-success d-none" id="save_btn_{{ concert.id }}" onclick="saveRow('{{ concert.id }}')">Save</button>
                             <!-- Dropdown button for deletion -->
                             <div class="btn-group">
-                                <button class="btn btn-danger dropdown-toggle" type="button" id="deleteDropdown_{{ concert.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <button class="btn btn-sm btn-danger dropdown-toggle" type="button" id="deleteDropdown_{{ concert.id }}" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-x-circle">X</i>
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="deleteDropdown_{{ concert.id }}">

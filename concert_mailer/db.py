@@ -110,6 +110,16 @@ def insert_concert(artist, venue_name, date, mgmt_email, mgmt_name, user_id):
 
     if venue_id is None:
         raise ValueError("Failed to determine venue ID")
+    
+    # Check for duplicate concert
+    duplicate_concert = db.execute(
+        'SELECT id FROM concert WHERE artist = ? AND venue_id = ? AND date = ?',
+        (artist, venue_id, date)
+    ).fetchone()
+
+    if duplicate_concert:
+        print(f"Duplicate concert found: Artist: {artist}, Venue ID: {venue_id}, Date: {date}")
+        return
 
     # Insert the concert with the venue_id
     db.execute(
@@ -239,4 +249,29 @@ def insert_alias(alias, venue_id):
 def delete_alias(id):
     db = get_db()
     db.execute('DELETE FROM venue_alias WHERE id = ?', (id,))
+    db.commit()
+
+def get_websites():
+    db = get_db()
+    return db.execute('SELECT * FROM website').fetchall()
+
+def get_scrape_queries():
+    db = get_db()
+    return db.execute('SELECT * FROM scrape_query').fetchall()
+
+def get_scrape_queries_by_website(website_id):
+    db = get_db()
+    return db.execute('SELECT * FROM scrape_query WHERE website_id = ?', (website_id,)).fetchall()
+
+def insert_scrape_query(website_id, city, month):
+    db = get_db()
+    db.execute(
+        'INSERT INTO scrape_query (website_id, city, month, query) VALUES (?, ?, ?, ?)',
+        (website_id, city, month, '')
+    )
+    db.commit()
+
+def delete_scrape_query(query_id):
+    db = get_db()
+    db.execute('DELETE FROM scrape_query WHERE id = ?', (query_id,))
     db.commit()

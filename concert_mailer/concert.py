@@ -23,7 +23,7 @@ def index():
     # db = get_db()
     today = datetime.today().date()
     page = request.args.get('page', 1, type=int)
-    per_page = 50  # Number of concerts per page
+    per_page = 100  # Number of concerts per page
     offset = (page - 1) * per_page
 
 
