@@ -8,7 +8,7 @@ from flask_mail import Mail, Message
 
 from concert_mailer.auth import login_required
 from concert_mailer.db import get_concerts, count_concerts, insert_concert, update_concert, get_concert, delete_concert, get_venue_by_id, get_all_venues
-from concert_mailer.email_helpers import generate_email, generate_concert_email, send_email, date_manipulation, email_subject_2, template_html_1
+from concert_mailer.email_helpers import generate_email, generate_concert_email, send_email, email_subject_2, template_html_1
 from concert_mailer.db import get_db
 # from concert_mailer import mail_obj as mail
 

@@ -36,7 +36,7 @@
                             <div id="concert_venue_{{ concert.id }}" class="editable-content cnt" data-venue-id="{{ concert.venue_id }}">{{ concert.venue }}</div>
                             <select id="venue_dropdown_{{ concert.id }}" class="form-control d-none">
                                 {% for venue in venues %}
-                                    <option value="{{ venue.id }}" {% if venue.id == concert.venue_id %}selected{% endif %}>{{ venue.name }} ({{ venue.city }})</option>
+                                    <option {% if venue.id == concert.venue_id %}selected{% endif %} value="{{ venue.id }}" >{{ venue.name }} ({{ venue.city }})</option>
                                 {% endfor %}
                             </select>
                         </td>
@@ -45,7 +45,7 @@
                         <td>{{ concert.emailed }}</td>
                         <td>
                             <button class="btn btn-sm btn-info" id="email_btn_{{ concert.id }}" data-bs-toggle="modal" data-bs-target="#emailModal" onclick="openEmailModal('{{ concert.id }}')">Email</button>
-                            <button class="btn btn-sm btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
+                            <button class="btn btn-sm btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}', '{{ concert.venue }}')">Edit</button>
                             <button class="btn btn-success d-none" id="save_btn_{{ concert.id }}" onclick="saveRow('{{ concert.id }}')">Save</button>
                             <!-- Dropdown button for deletion -->
                             <div class="btn-group">
@@ -98,7 +98,7 @@
                             <div id="concert_venue_{{ concert.id }}" class="editable-content cnt">{{ concert.venue }}</div>
                             <select id="venue_dropdown_{{ concert.id }}" class="form-control d-none">
                                 {% for venue in venues %}
-                                    <option value="{{ venue.id }}" {% if venue.id == concert.venue_id %}selected{% endif %}>{{ venue.name }} ({{ venue.city }})</option>
+                                    <option value="{{ venue.id }}">{{ venue.name }} ({{ venue.city }})</option>
                                 {% endfor %}
                             </select>
                         </td>
@@ -106,7 +106,7 @@
                         <td><div id="mgmt_name_{{ concert.id }}" class="editable-content">{{ concert.mgmt_name or '' }}</div></td>
                         <td>{{ concert.emailed }}</td>
                         <td>
-                            <button class="btn btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}')">Edit</button>
+                            <button class="btn btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}', '{{ concert.venue_id }}')">Edit</button>
                             <button class="btn btn-success d-none" id="save_btn_{{ concert.id }}" onclick="saveRow('{{ concert.id }}')">Save</button>
                             <!-- Dropdown button for deletion -->
                             <div class="btn-group">
@@ -164,7 +164,7 @@
 
 
 <script>
-    function toggleEdit(concertId) {
+    function toggleEdit(concertId, concertVenueId) {
         const editButton = document.getElementById(`edit_btn_${concertId}`);
         const saveButton = document.getElementById(`save_btn_${concertId}`);
         const emailButton = document.getElementById(`email_btn_${concertId}`);
@@ -172,24 +172,26 @@
         const row = document.getElementById(`row_${concertId}`);
         const isEditing = saveButton.classList.contains('d-none');
 
-        const venueDiv = document.getElementById(`concert_venue_${concertId}`);
-        const venueSelect = document.getElementById(`venue_dropdown_${concertId}`);
+        const venueDiv = document.getElementById(`concert_venue_${concertId}`); // Venue when not editing
+        const venueSelect = document.getElementById(`venue_dropdown_${concertId}`); // Venue dropdown when editing
 
         if (isEditing) {
             // Start editing
             editButton.classList.add('d-none');
             saveButton.classList.remove('d-none');
             emailButton.classList.add('d-none');
-            deleteButton.classList.add('d-none'); // Might be the other way around
+            deleteButton.classList.add('d-none');
 
             venueDiv.classList.add('d-none');
             venueSelect.classList.remove('d-none');
 
             row.classList.add('table-warning');
 
-            // // Set the selected option in the dropdown to the current venue
-            // const currentVenueId = venueDiv.dataset.venueId;
-            // venueSelect.value = currentVenueId;
+            // Set the selected option in the dropdown to the current venue
+            const currentVenueId = venueDiv.dataset.venueId;
+            // console.log("currentVenueId: ", currentVenueId);
+            // console.log("concertVenueId: ", concertVenueId);
+            venueSelect.value = currentVenueId;
 
             // Make fields editable
             const fields = [

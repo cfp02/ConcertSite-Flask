@@ -39,7 +39,7 @@ def init_app(app):
 def get_concerts(date_filter, order, limit, offset):
     db = get_db()
     return db.execute(
-        'SELECT c.id, c.artist, v.name AS venue, c.date, c.mgmt_email, c.mgmt_name, c.emailed, c.user_id, u.username '
+        'SELECT c.id, c.artist, c.venue_id, v.name AS venue, c.date, c.mgmt_email, c.mgmt_name, c.emailed, c.user_id, u.username '
         'FROM concert c '
         'JOIN user u ON c.user_id = u.id '
         'JOIN venue v ON c.venue_id = v.id '

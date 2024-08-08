@@ -7,6 +7,7 @@ from concert_mailer.db import get_concert, get_venue_by_id
 
 email_subject_1 = "Photography inquiry for {{artist}} at {{venue}} on {{date_subject}}"
 email_subject_2 = "Photography inquiry for {{artist}} at {{venue}} ({{date_subject}})"
+email_subject_3 = "{{artist}} {{city}} Media Coverage ({{date_subject}})"
 
 template_html_1 = """<!DOCTYPE html>
         <html>
@@ -37,6 +38,35 @@ template_html_1 = """<!DOCTYPE html>
         </body>
         </html>"""
 
+template_html_2 = """<!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: 'Arial', sans-serif;
+                    font-size: 13px; /* This is a typical 'normal' size, adjust as needed */
+                }
+                p {
+                    margin: 0 0 0px 0; /* Adjust paragraph spacing */
+                }
+                .signature {
+                    font-style: italic;
+                }
+            </style>
+        </head>
+        <body>
+            <p>Hi {{mgmt_name}}!</p><br>
+            <p>I'm Cole, a Boston-based photographer, and I've been fortunate enough to photograph some amazing concerts in the area. I saw that {{artist}} is performing at {{venue}} on {{date}} and I'd love to work together to capture the energy of the performance! I turn around all my work overnight or within 24 hours and I'm very flexible to work within any budget. I'm also potentially open to coming in to shoot for free.</p><br>
+            <p>Here is a link to my website with some of my previous work: <a href="https://coleparksphotography.com/concerts">coleparksphotography.com/concerts</a></p>
+            <p>Let me know what you think!</p><br>
+            <p>Best,<br>
+            <p class="signature">
+            Cole Parks<br>
+            <a href="https://coleparksphotography.com">coleparksphotography.com</a></p>
+            <p>&nbsp;</p>
+        </body>
+        </html>"""
+
 def replace_placeholders(template_body: str, placeholders: dict[str, str]) -> str:
     '''
     Replaces placeholders in the template HTML with the appropriate values. 
@@ -58,8 +88,25 @@ def date_manipulation(date: datetime):
     short_date = date.strftime("%b %d")
     if short_date[-2] == "0":
         short_date = short_date[:-2] + short_date[-1]
-    # Looks like 'Monday, January 01'
+    # Looks like 'Monday, January 1'
     normal_date = date.strftime("%A, %B %d")
+    
+    day_num = normal_date[-2:]
+    # Add the appropriate suffix to the day number
+    if day_num == '01' or day_num == '21' or day_num == '31':
+        suffix = 'st'
+    elif day_num == '02' or day_num == '22':
+        suffix = 'nd'
+    elif day_num == '03' or day_num == '23':
+        suffix = 'rd'
+    else:
+        suffix = 'th'
+
+    if normal_date[-2] == "0":
+        normal_date = normal_date[:-2] + normal_date[-1]
+
+    normal_date = normal_date + suffix
+
     return short_date, normal_date
 
 def generate_concert_email(concert_id: int):
@@ -73,7 +120,10 @@ def generate_concert_email(concert_id: int):
     # concert['date'] is in the format 'YYYY-MM-DD'
     date_datetime = datetime.strptime(concert['date'], '%Y-%m-%d')
 
+    
+
     date_subject, date = date_manipulation(date_datetime)
+    print("Date is ", date)
 
     mgmt_name = 'there' if concert['mgmt_name'] == '' else concert['mgmt_name']
 
@@ -88,12 +138,14 @@ def generate_concert_email(concert_id: int):
         'venue': venue_email_text,
         'location': '',
         'date': date,
-        'date_subject': date_subject
+        'date_subject': date_subject,
+        'city': venue['city']
     }
 
     print(placeholders)
     
-    new_mail_obj, msg = generate_email(mail_obj, [concert['mgmt_email']], template_html_1, placeholders, sender='Cole Parks Photography',subject=email_subject_2)
+    # Using template 1 and subject 2
+    new_mail_obj, msg = generate_email(mail_obj, [concert['mgmt_email']], template_html_2, placeholders, sender='Cole Parks Photography',subject=email_subject_3)
 
     return new_mail_obj, msg
     
