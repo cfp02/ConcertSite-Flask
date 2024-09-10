@@ -4,3 +4,4 @@ __pycache__
 concert_mailer/__pycache__
 concert_mailer/mailpassword.py
 .DS_Store
+concert_mailer/mailpassword_coleparksphotography.py

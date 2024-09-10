@@ -80,6 +80,9 @@ def replace_placeholders(template_body: str, placeholders: dict[str, str]) -> st
         template_body (str): The template HTML with placeholders replaced with their values
     '''
     for key, value in placeholders.items():
+        # print("Replacing ", key, " with ", value)
+        if value is None:
+            value = ""
         template_body = template_body.replace("{{" + key + "}}", value)
     return template_body
 
@@ -113,14 +116,13 @@ def generate_concert_email(concert_id: int):
     '''
     Takes a concert ID and generates the formatted placeholders to be used in the email template.
     '''
+
     concert = get_concert(concert_id)
     
     mail_obj: Mail = current_app.extensions['mail']
 
     # concert['date'] is in the format 'YYYY-MM-DD'
     date_datetime = datetime.strptime(concert['date'], '%Y-%m-%d')
-
-    
 
     date_subject, date = date_manipulation(date_datetime)
     print("Date is ", date)
@@ -142,11 +144,11 @@ def generate_concert_email(concert_id: int):
         'city': venue['city']
     }
 
-    print(placeholders)
+    print("Placeholders: ", placeholders, "\n\n")
     
     # Using template 1 and subject 2
-    new_mail_obj, msg = generate_email(mail_obj, [concert['mgmt_email']], template_html_2, placeholders, sender='Cole Parks Photography',subject=email_subject_3)
-
+    new_mail_obj, msg = generate_email(mail_obj, [concert['mgmt_email']], template_html_2, placeholders, sender=('Cole Parks Photography', 'coleparksphotography@gmail.com'),subject=email_subject_3)
+ 
     return new_mail_obj, msg
     
 
@@ -155,7 +157,7 @@ def generate_email(
     recipients: list[str],
     template_body: str,
     placeholders: dict[str, str],
-    sender = 'Cole Parks Photography',
+    sender = ('Cole Parks Photography', 'coleparksphotography@gmail.com'),
     subject: str = "Photography inquiry for {{artist}} at {{venue}} on {{date_subject}}",
 ):
     
