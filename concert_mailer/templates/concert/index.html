@@ -166,6 +166,23 @@
     </div>
 </div>
 
+<!-- Toast Container -->
+<div aria-live="polite" aria-atomic="true" class="position-relative">
+    <!-- Position it -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <!-- Toast -->
+        <div id="emailToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Email sent successfully!
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function toggleEdit(concertId, concertVenueId) {
         const editButton = document.getElementById(`edit_btn_${concertId}`);
@@ -364,7 +381,9 @@
                     // Display email content in the div
                     document.getElementById('emailContentDisplay').innerHTML = data.email_content;
                     // Set email content in the textarea
-                    document.getElementById('emailContentEditor').value = data.email_content;
+                    const emailContentEditor = document.getElementById('emailContentEditor');
+                    emailContentEditor.value = data.email_content;
+                    adjustTextareaHeight(emailContentEditor); // Adjust height based on content
                     document.getElementById('emailModalLabel').innerHTML = data.email_subject;
                     document.getElementById('modelEmailAddress').innerHTML = "To: " + data.email_address;
                 } else {
@@ -381,8 +400,7 @@
         document.getElementById('emailContentDisplay').classList.add('d-none');
         const emailContentEditor = document.getElementById('emailContentEditor');
         emailContentEditor.classList.remove('d-none');
-        adjustTextareaHeight(emailContentEditor);
-
+        adjustTextareaHeight(emailContentEditor); // Adjust height based on content
         // Show the save button and hide the edit and send buttons
         document.getElementById('saveEmailButton').classList.remove('d-none');
         document.getElementById('editEmailButton').classList.add('d-none');
@@ -417,16 +435,32 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Email sent successfully!');
+                showToast('Email sent successfully!');
             } else {
-                alert('Error sending email: ' + data.message);
+                showToast('Error sending email: ' + data.message, 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
+            showToast('Error sending email: ' + error.message, 'error');
         });
 
         closeEmailModal();
+    }
+
+    function showToast(message, type = 'success') {
+        const toastEl = document.getElementById('emailToast');
+        const toastBody = toastEl.querySelector('.toast-body');
+        toastBody.textContent = message;
+
+        if (type === 'error') {
+            toastEl.classList.add('bg-danger', 'text-white');
+        } else {
+            toastEl.classList.remove('bg-danger', 'text-white');
+        }
+
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
     }
 
     function deleteConcert(concertId) {
