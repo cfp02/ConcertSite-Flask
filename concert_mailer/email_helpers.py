@@ -180,6 +180,8 @@ def generate_email(
 
 def send_email(email_obj: Mail, msg: Message) -> bool:
 
+    print("Sending email: ", msg.body)
+
     # Send the email
     try:    
         email_obj.send(msg)

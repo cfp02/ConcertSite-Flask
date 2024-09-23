@@ -30,7 +30,7 @@
             <tbody>
                 {% for concert in future_concerts %}
                     <tr id="row_{{ concert.id }}" class = "table-row-scraper">
-                        <td><div id="concert_date_{{ concert.id }}" class="editable-content cnt">{{ concert.date }}</div></td>
+                        <td class = "nowrap"><div id="concert_date_{{ concert.id }}" class="editable-content cnt">{{ concert.date }}</div></td>
                         <td><div id="concert_artist_{{ concert.id }}" class="editable-content cnt">{{ concert.artist }}</div></td>
                         <td>
                             <div id="concert_venue_{{ concert.id }}" class="editable-content cnt" data-venue-id="{{ concert.venue_id }}">{{ concert.venue }}</div>
@@ -43,7 +43,7 @@
                         <td><div id="mgmt_email_{{ concert.id }}" class="editable-content cnt">{{ concert.mgmt_email or '' }}</div></td>
                         <td><div id="mgmt_name_{{ concert.id }}" class="editable-content cnt">{{ concert.mgmt_name or '' }}</div></td>
                         <td>{{ concert.emailed }}</td>
-                        <td>
+                        <td class = "nowrap action-buttons">
                             <button class="btn btn-sm btn-info" id="email_btn_{{ concert.id }}" data-bs-toggle="modal" data-bs-target="#emailModal" onclick="openEmailModal('{{ concert.id }}')">Email</button>
                             <button class="btn btn-sm btn-primary" id="edit_btn_{{ concert.id }}" onclick="toggleEdit('{{ concert.id }}', '{{ concert.venue }}')">Edit</button>
                             <button class="btn btn-success d-none" id="save_btn_{{ concert.id }}" onclick="saveRow('{{ concert.id }}')">Save</button>
@@ -136,9 +136,10 @@
     </div>
 </div>
 
+
 <!-- Email Modal -->
 <div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="emailModalLabel">Email Content</h5>
@@ -148,20 +149,22 @@
                 <p class="modal-title" id="modelEmailAddress"></p>
             </div>
             <div class="modal-body">
-                <!-- Container to display the email content -->
-                <div id="emailContent" class="email-content" style="height: auto;"></div>
+                <!-- Div to display the formatted email content -->
+                <div id="emailContentDisplay" class="form-control" style="height: auto; overflow-y: auto;"></div>
+                <!-- Textarea to edit the email content, initially hidden -->
+                <textarea id="emailContentEditor" class="form-control d-none" style="height: auto; overflow-y: auto;"></textarea>
             </div>
             <div class="modal-footer">
                 <!-- Hidden input to store the concert ID -->
                 <input type="hidden" id="emailConcertId">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="closeEmailModal()">Close</button>
-                <button type="button" class="btn btn-primary" onclick="sendEmail()">Send Email</button>
+                <button type="button" class="btn btn-primary d-none" id="saveEmailButton" onclick="saveEmailContent()">Save</button>
+                <button type="button" class="btn btn-primary" id="editEmailButton" onclick="editEmailContent()">Edit</button>
+                <button type="button" class="btn btn-primary" id="sendEmailButton" onclick="sendEmail()">Send Email</button>
             </div>
         </div>
     </div>
 </div>
-
-
 
 <script>
     function toggleEdit(concertId, concertVenueId) {
@@ -289,7 +292,6 @@
         }
     }
 
-
     function saveRow(concertId) {
         const data = {
             concert_date: document.getElementById(`concert_date_${concertId}`).innerText,
@@ -322,7 +324,9 @@
     }
 
     function openEmailModal(concertId) {
-        document.getElementById('emailContent').innerHTML = '';
+        // Clear the content
+        document.getElementById('emailContentDisplay').innerHTML = '';
+        document.getElementById('emailContentEditor').value = '';
 
         // Store the concert ID in a hidden input
         document.getElementById('emailConcertId').value = concertId;
@@ -335,48 +339,84 @@
         fetchEmailContent(concertId);
     }
 
+    // function closeEmailModal() {
+    //     // const emailModal = new bootstrap.Modal(document.getElementById('emailModal'));
+    //     // emailModal.hide();
+    //     bootstrap.Modal.getInstance(document.getElementById('emailModal')).hide();
+    //     document.querySelector('.modal-backdrop').remove();
+    // }
+
     function closeEmailModal() {
-        // const emailModal = new bootstrap.Modal(document.getElementById('emailModal'));
-        // emailModal.hide();
-        bootstrap.Modal.getInstance(document.getElementById('emailModal')).hide();
+        const emailModal = bootstrap.Modal.getInstance(document.getElementById('emailModal'));
+        if (emailModal) {
+            emailModal.hide();
+        }
         document.querySelector('.modal-backdrop').remove();
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
     }
 
     function fetchEmailContent(concertId) {
-    fetch(`/fetch_email_content/${concertId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Display email content in the modal
-                document.getElementById('emailContent').innerHTML = data.email_content;
-                document.getElementById('emailModalLabel').innerHTML = data.email_subject;
-                document.getElementById('modelEmailAddress').innerHTML = "To: " + data.email_address;
-            } else {
-                alert('Error fetching email content: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        fetch(`/fetch_email_content/${concertId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Display email content in the div
+                    document.getElementById('emailContentDisplay').innerHTML = data.email_content;
+                    // Set email content in the textarea
+                    document.getElementById('emailContentEditor').value = data.email_content;
+                    document.getElementById('emailModalLabel').innerHTML = data.email_subject;
+                    document.getElementById('modelEmailAddress').innerHTML = "To: " + data.email_address;
+                } else {
+                    alert('Error fetching email content: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    function editEmailContent() {
+        // Hide the display div and show the textarea
+        document.getElementById('emailContentDisplay').classList.add('d-none');
+        const emailContentEditor = document.getElementById('emailContentEditor');
+        emailContentEditor.classList.remove('d-none');
+        adjustTextareaHeight(emailContentEditor);
+
+        // Show the save button and hide the edit and send buttons
+        document.getElementById('saveEmailButton').classList.remove('d-none');
+        document.getElementById('editEmailButton').classList.add('d-none');
+        document.getElementById('sendEmailButton').classList.add('d-none');
+    }
+
+    function saveEmailContent() {
+        // Get the content from the textarea
+        const emailContent = document.getElementById('emailContentEditor').value;
+        // Set the content in the display div
+        document.getElementById('emailContentDisplay').innerHTML = emailContent;
+        // Hide the textarea and show the display div
+        document.getElementById('emailContentEditor').classList.add('d-none');
+        document.getElementById('emailContentDisplay').classList.remove('d-none');
+        // Show the edit and send buttons and hide the save button
+        document.getElementById('saveEmailButton').classList.add('d-none');
+        document.getElementById('editEmailButton').classList.remove('d-none');
+        document.getElementById('sendEmailButton').classList.remove('d-none');
     }
 
     function sendEmail() {
-
         const concertId = document.getElementById('emailConcertId').value;
-        
-        closeEmailModal();
+        const emailContent = document.getElementById('emailContentEditor').value;
 
         fetch(`/send_email/${concertId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({concert_id: concertId})
+            body: JSON.stringify({ concert_id: concertId, email_content: emailContent })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-
                 alert('Email sent successfully!');
             } else {
                 alert('Error sending email: ' + data.message);
@@ -386,7 +426,7 @@
             console.error('Error:', error);
         });
 
-        
+        closeEmailModal();
     }
 
     function deleteConcert(concertId) {
@@ -415,10 +455,18 @@
         .catch(error => {
             console.error('Error:', error);
         });
-    // }
-}
+    }
 
-    
+    function adjustTextareaHeight(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    }
+
+    // Adjust height on input
+    document.getElementById('emailContentEditor').addEventListener('input', function() {
+        adjustTextareaHeight(this);
+    });
+
 </script>
 
 <style>
@@ -427,8 +475,12 @@
         border-radius: 4px; /* Rounded corners */
         background-color: rgba(255, 255, 255, 0); /* Consistent background color */
         box-sizing: border-box; /* Ensure padding/border does not affect width */
-        /* height: 40px; Maintain row height */
+        /*height: 40px; /* Maintain row height */
         vertical-align:middle; /* Center text vertically */
+        padding: 5px;
+        /* min-height: 38px; */
+        display: flex;
+        align-items: center;
     }
 
     /* Styling when a row is being edited */
@@ -446,8 +498,30 @@
         vertical-align: middle;
     }
 
+    .nowrap {
+        white-space: nowrap;
+    }
 
+    .action-buttons .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
 
+    .table td, .table th {
+        vertical-align: middle;
+        /* white-space: nowrap; */
+    }
+
+    #emailContent {
+        font-family: inherit;
+        font-size: inherit;
+    }
+    
+    #emailContentEditor {
+        font-size: 14px; /* Smaller text size */
+        /* height: 400px; Larger height */
+        resize: vertical; /* Allow vertical resizing */
+    }   
 </style>
 
 {% endblock %}

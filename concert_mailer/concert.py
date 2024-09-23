@@ -23,7 +23,7 @@ def index():
     # db = get_db()
     today = datetime.today().date()
     page = request.args.get('page', 1, type=int)
-    per_page = 100  # Number of concerts per page
+    per_page = 200  # Number of concerts per page
     offset = (page - 1) * per_page
 
 
@@ -127,16 +127,21 @@ def delete(concert_id):
 @login_required
 def send_concert_email(concert_id):
     data = request.json
-    
+    email_content = data.get('email_content')
+
+    if not email_content:
+        return jsonify({'success': False, 'message': 'Email content is required'}), 400
+
     concert = get_concert(concert_id)
     if concert is None:
         return jsonify({'success': False, 'message': 'Concert not found'}), 404
     
     print("Sending email for concert ID ", concert_id)
     
-    mail_obj, message = generate_concert_email(concert_id)
 
     try:
+        mail_obj, message = generate_concert_email(concert_id)
+        message.html = email_content # Replace the generated email content with the email_content passed in since it was edited in the email modal
         send_email(mail_obj, message)
         update_concert(concert_id, concert['date'], concert['artist'], concert['venue_id'], concert['mgmt_email'], concert['mgmt_name'], emailed=True)
         email_content = message.html or message.body
