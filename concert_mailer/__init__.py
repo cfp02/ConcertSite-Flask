@@ -2,8 +2,13 @@
 import os
 from flask import Flask
 from flask_mail import Mail
+from dotenv import load_dotenv
 
 def create_app(test_config=None, prod = True):
+
+    # Load environment variables from .env file
+    load_dotenv()
+
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
@@ -12,23 +17,21 @@ def create_app(test_config=None, prod = True):
     )
 
     if prod:
-        from concert_mailer.mailpassword_coleparksphotography import mail_password
         app.config.update(
             MAIL_SERVER='smtp.gmail.com',
             MAIL_PORT=587,
             MAIL_USE_TLS=True,
-            MAIL_USERNAME='coleparksphotography@gmail.com',
-            MAIL_PASSWORD=mail_password
+            MAIL_USERNAME=os.getenv('MAIL_USERNAME'),
+            MAIL_PASSWORD=os.getenv('MAIL_PASSWORD')
         )
 
     else:
-        from concert_mailer.mailpassword import mail_password
         app.config.update(
         MAIL_SERVER='smtp.gmail.com',
         MAIL_PORT=587,
         MAIL_USE_TLS=True,
-        MAIL_USERNAME='lunemediamailer@gmail.com',
-        MAIL_PASSWORD=mail_password
+        MAIL_USERNAME=os.getenv('MAIL_USERNAME_TESTEMAIL'),
+        MAIL_PASSWORD=os.getenv('MAIL_PASSWORD_TESTEMAIL')
         )
         
     mail = Mail(app)
