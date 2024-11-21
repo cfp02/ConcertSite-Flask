@@ -15,12 +15,12 @@ bp = Blueprint('scraping', __name__)
 def get_page_source(url):
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
-    # service = Service(ChromeDriverManager().install())
-    # driver = webdriver.Chrome(service=Service(), options=options)
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=Service(), options=options)
 
-    chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
-    print(f"Chromedriver path: {chromedriver_path}")
-    service = Service(chromedriver_path)
+    # chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
+    # print(f"Chromedriver path: {chromedriver_path}")
+    # service = Service(chromedriver_path)
     
     driver = webdriver.Chrome(service=service, options=options)
     
