@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -15,8 +16,13 @@ def get_page_source(url):
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
     # service = Service(ChromeDriverManager().install())
-    # driver = webdriver.Chrome(service=service, options=options)
-    driver = webdriver.Chrome(options=options)
+    # driver = webdriver.Chrome(service=Service(), options=options)
+
+    chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
+    print(f"Chromedriver path: {chromedriver_path}")
+    service = Service(chromedriver_path)
+    
+    driver = webdriver.Chrome(service=service, options=options)
     
 
     driver.get(url)
@@ -26,6 +32,8 @@ def get_page_source(url):
     driver.quit()
 
     soup = BeautifulSoup(page_source, 'html.parser')
+
+    # print(f"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPage source length: {len(page_source)}")
     return soup
 
 def scrape_concert_info_ticketliquidator(soup: BeautifulSoup):
